@@ -3,19 +3,22 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/bill_provider.dart';
 import 'providers/theme_provider.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/main_navigation.dart';
-import 'services/storage_service.dart';
+import 'package:final_wali_file/services/storage_service.dart';
 import 'services/notification_service.dart';
+import 'screens/auth/login_screen.dart';         // ✅ NEW
+import 'screens/main_navigation.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageService.init();
   await NotificationService.initialize();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -29,7 +32,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'Bills Reminder',
             theme: themeProvider.currentTheme,
-            home: AuthWrapper(),
+            home: const AuthWrapper(),
             debugShowCheckedModeBanner: false,
           );
         },
@@ -39,14 +42,16 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         if (authProvider.isAuthenticated) {
-          return MainNavigation();
+          return const MainNavigation();
         }
-        return LoginScreen();
+        return const LoginScreen();
       },
     );
   }

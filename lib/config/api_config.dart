@@ -1,6 +1,6 @@
 class ApiConfig {
   // Change this to your Flask server URL
-  static const String baseUrl = 'http://localhost:5000/api';
+  static const String baseUrl = 'http://127.0.0.1:5000';
   
   // Authentication endpoints
   static const String loginEndpoint = '/auth/login';

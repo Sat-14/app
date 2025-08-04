@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
-import '../../services/notification_service.dart';
 import 'profile_edit_screen.dart';
 import 'reminder_settings_screen.dart';
 
+
 class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -14,7 +16,7 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
+        title: const Text('Settings'),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -22,39 +24,39 @@ class SettingsScreen extends StatelessWidget {
           children: [
             // Profile section
             Card(
-              margin: EdgeInsets.all(16),
+              margin: const EdgeInsets.all(16),
               child: InkWell(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ProfileEditScreen()),
+                    MaterialPageRoute(builder: (context) => const ProfileEditScreen()),
                   );
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
                       CircleAvatar(
                         radius: 30,
                         child: Text(
                           authProvider.user?.name[0].toUpperCase() ?? 'U',
-                          style: TextStyle(fontSize: 24),
+                          style: const TextStyle(fontSize: 24),
                         ),
                       ),
-                      SizedBox(width: 16),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               authProvider.user?.name ?? 'User',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               authProvider.user?.email ?? '',
                               style: TextStyle(
@@ -63,7 +65,7 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             if (authProvider.user?.phoneNumber != null &&
                                 authProvider.user!.phoneNumber!.isNotEmpty) ...[
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
                                 authProvider.user!.phoneNumber!,
                                 style: TextStyle(
@@ -75,7 +77,7 @@ class SettingsScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Icon(Icons.arrow_forward_ios, size: 16),
+                      const Icon(Icons.arrow_forward_ios, size: 16),
                     ],
                   ),
                 ),
@@ -84,7 +86,7 @@ class SettingsScreen extends StatelessWidget {
 
             // Settings sections
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'PREFERENCES',
                 style: TextStyle(
@@ -94,13 +96,13 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
 
             // Theme toggle
             ListTile(
-              leading: Icon(Icons.dark_mode),
-              title: Text('Dark Mode'),
-              subtitle: Text('Switch between light and dark theme'),
+              leading: const Icon(Icons.dark_mode),
+              title: const Text('Dark Mode'),
+              subtitle: const Text('Switch between light and dark theme'),
               trailing: Switch(
                 value: themeProvider.isDarkMode,
                 onChanged: (value) {
@@ -111,23 +113,23 @@ class SettingsScreen extends StatelessWidget {
 
             // Notifications
             ListTile(
-              leading: Icon(Icons.notifications),
-              title: Text('Reminder Settings'),
-              subtitle: Text('Manage all reminder preferences'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              leading: const Icon(Icons.notifications),
+              title: const Text('Reminder Settings'),
+              subtitle: const Text('Manage all reminder preferences'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ReminderSettingsScreen()),
+                  MaterialPageRoute(builder: (context) => const ReminderSettingsScreen()),
                 );
               },
             ),
 
-            Divider(height: 32),
+            const Divider(height: 32),
 
             // Data section
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'DATA',
                 style: TextStyle(
@@ -137,17 +139,17 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
 
             // Export data
             ListTile(
-              leading: Icon(Icons.download),
-              title: Text('Export Data'),
-              subtitle: Text('Download your bills data as CSV'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              leading: const Icon(Icons.download),
+              title: const Text('Export Data'),
+              subtitle: const Text('Download your bills data as CSV'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text('Export feature coming soon!'),
                   ),
                 );
@@ -156,27 +158,27 @@ class SettingsScreen extends StatelessWidget {
 
             // Clear cache
             ListTile(
-              leading: Icon(Icons.cleaning_services),
-              title: Text('Clear Cache'),
-              subtitle: Text('Free up storage space'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              leading: const Icon(Icons.cleaning_services),
+              title: const Text('Clear Cache'),
+              subtitle: const Text('Free up storage space'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () async {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: Text('Clear Cache'),
-                    content: Text('This will remove all cached data. Are you sure?'),
+                    title: const Text('Clear Cache'),
+                    content: const Text('This will remove all cached data. Are you sure?'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: Text('Cancel'),
+                        child: const Text('Cancel'),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: Text('Clear'),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.red,
                         ),
+                        child: const Text('Clear'),
                       ),
                     ],
                   ),
@@ -185,7 +187,7 @@ class SettingsScreen extends StatelessWidget {
                 if (confirmed == true) {
                   // Clear cache logic
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text('Cache cleared successfully'),
                       backgroundColor: Colors.green,
                     ),
@@ -194,11 +196,11 @@ class SettingsScreen extends StatelessWidget {
               },
             ),
 
-            Divider(height: 32),
+            const Divider(height: 32),
 
             // Support section
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'SUPPORT',
                 style: TextStyle(
@@ -208,13 +210,13 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
 
             // Help & FAQ
             ListTile(
-              leading: Icon(Icons.help),
-              title: Text('Help & FAQ'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              leading: const Icon(Icons.help),
+              title: const Text('Help & FAQ'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 // Navigate to help screen
               },
@@ -222,17 +224,17 @@ class SettingsScreen extends StatelessWidget {
 
             // About
             ListTile(
-              leading: Icon(Icons.info),
-              title: Text('About'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              leading: const Icon(Icons.info),
+              title: const Text('About'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 showAboutDialog(
                   context: context,
                   applicationName: 'Bills Reminder',
                   applicationVersion: '1.0.0',
-                  applicationIcon: Icon(Icons.receipt_long, size: 48),
+                  applicationIcon: const Icon(Icons.receipt_long, size: 48),
                   children: [
-                    Text('A simple app to manage and track your bills.'),
+                    const Text('A simple app to manage and track your bills.'),
                   ],
                 );
               },
@@ -240,19 +242,19 @@ class SettingsScreen extends StatelessWidget {
 
             // Privacy Policy
             ListTile(
-              leading: Icon(Icons.privacy_tip),
-              title: Text('Privacy Policy'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              leading: const Icon(Icons.privacy_tip),
+              title: const Text('Privacy Policy'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 // Open privacy policy
               },
             ),
 
-            Divider(height: 32),
+            const Divider(height: 32),
 
             // Logout
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -260,19 +262,19 @@ class SettingsScreen extends StatelessWidget {
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: Text('Logout'),
-                        content: Text('Are you sure you want to logout?'),
+                        title: const Text('Logout'),
+                        content: const Text('Are you sure you want to logout?'),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: Text('Cancel'),
+                            child: const Text('Cancel'),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
-                            child: Text('Logout'),
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.red,
                             ),
+                            child: const Text('Logout'),
                           ),
                         ],
                       ),
@@ -286,11 +288,11 @@ class SettingsScreen extends StatelessWidget {
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                   ),
-                  child: Text('Logout'),
+                  child: const Text('Logout'),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
           ],
         ),
       ),

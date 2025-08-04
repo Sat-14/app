@@ -5,7 +5,7 @@ import '../../utils/helpers.dart';
 class OverdueBillsAlert extends StatelessWidget {
   final List<Bill> bills;
 
-  const OverdueBillsAlert({Key? key, required this.bills}) : super(key: key);
+  const OverdueBillsAlert({super.key, required this.bills});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class OverdueBillsAlert extends StatelessWidget {
     );
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.red.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -26,12 +26,12 @@ class OverdueBillsAlert extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.warning_rounded,
             color: Colors.red,
             size: 32,
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +44,7 @@ class OverdueBillsAlert extends StatelessWidget {
                     color: Colors.red[900],
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   'Total: ${Helpers.formatCurrency(totalOverdue)}',
                   style: TextStyle(
@@ -59,7 +59,7 @@ class OverdueBillsAlert extends StatelessWidget {
             onPressed: () {
               // Navigate to bills list with overdue filter
             },
-            child: Text(
+            child: const Text(
               'View',
               style: TextStyle(
                 color: Colors.red,

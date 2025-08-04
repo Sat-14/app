@@ -11,12 +11,12 @@ class BillListItem extends StatelessWidget {
   final VoidCallback onMarkPaid;
 
   const BillListItem({
-    Key? key,
+    super.key,
     required this.bill,
     required this.onTap,
     required this.onDelete,
     required this.onMarkPaid,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,7 @@ class BillListItem extends StatelessWidget {
               foregroundColor: Colors.white,
               icon: Icons.check,
               label: 'Paid',
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 bottomLeft: Radius.circular(12),
               ),
@@ -47,10 +47,10 @@ class BillListItem extends StatelessWidget {
             icon: Icons.delete,
             label: 'Delete',
             borderRadius: BorderRadius.only(
-              topRight: Radius.circular(12),
-              bottomRight: Radius.circular(12),
-              topLeft: bill.isPaid ? Radius.circular(12) : Radius.zero,
-              bottomLeft: bill.isPaid ? Radius.circular(12) : Radius.zero,
+              topRight: const Radius.circular(12),
+              bottomRight: const Radius.circular(12),
+              topLeft: bill.isPaid ? const Radius.circular(12) : Radius.zero,
+              bottomLeft: bill.isPaid ? const Radius.circular(12) : Radius.zero,
             ),
           ),
         ],
@@ -60,7 +60,7 @@ class BillListItem extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Container(
@@ -73,11 +73,11 @@ class BillListItem extends StatelessWidget {
                   child: Center(
                     child: Text(
                       Helpers.getCategoryEmoji(bill.category),
-                      style: TextStyle(fontSize: 24),
+                      style: const TextStyle(fontSize: 24),
                     ),
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +98,7 @@ class BillListItem extends StatelessWidget {
                           ),
                           if (bill.isPaid)
                             Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 2,
                               ),
@@ -106,7 +106,7 @@ class BillListItem extends StatelessWidget {
                                 color: Colors.green.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Text(
+                              child: const Text(
                                 'PAID',
                                 style: TextStyle(
                                   fontSize: 10,
@@ -117,7 +117,7 @@ class BillListItem extends StatelessWidget {
                             ),
                         ],
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
                           Icon(
@@ -125,7 +125,7 @@ class BillListItem extends StatelessWidget {
                             size: 14,
                             color: Colors.grey[600],
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
                             Helpers.formatDate(bill.dueDate),
                             style: TextStyle(
@@ -133,13 +133,13 @@ class BillListItem extends StatelessWidget {
                               color: Colors.grey[600],
                             ),
                           ),
-                          SizedBox(width: 16),
+                          const SizedBox(width: 16),
                           Icon(
                             Icons.repeat,
                             size: 14,
                             color: Colors.grey[600],
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
                             Helpers.getFrequencyLabel(bill.frequency),
                             style: TextStyle(
@@ -157,7 +157,7 @@ class BillListItem extends StatelessWidget {
                   children: [
                     Text(
                       Helpers.formatCurrency(bill.amount),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),

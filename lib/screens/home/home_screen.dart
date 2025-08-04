@@ -9,6 +9,8 @@ import '../../widgets/home/overdue_bills_alert.dart';
 import '../bills/add_edit_bill_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -21,10 +23,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bills Reminder'),
+        title: const Text('Bills Reminder'),
         actions: [
           IconButton(
-            icon: Icon(Icons.notifications),
+            icon: const Icon(Icons.notifications),
             onPressed: () {
               // Navigate to notifications screen
             },
@@ -34,24 +36,24 @@ class _HomeScreenState extends State<HomeScreen> {
       body: RefreshIndicator(
         onRefresh: () => billProvider.fetchBills(),
         child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(16),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Welcome message
               Card(
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
                       CircleAvatar(
                         child: Text(
                           authProvider.user?.name[0].toUpperCase() ?? 'U',
-                          style: TextStyle(fontSize: 20),
+                          style: const TextStyle(fontSize: 20),
                         ),
                       ),
-                      SizedBox(width: 16),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             Text(
                               authProvider.user?.name ?? 'User',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -77,12 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Overdue bills alert
               if (billProvider.overdueBills.isNotEmpty) ...[
                 OverdueBillsAlert(bills: billProvider.overdueBills),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
               ],
 
               // Quick actions
@@ -91,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AddEditBillScreen(),
+                      builder: (context) => const AddEditBillScreen(),
                     ),
                   );
                 },
@@ -99,28 +101,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Navigate to analytics
                 },
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               // Monthly summary
-              Text(
+              const Text(
                 'Monthly Summary',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               MonthlySummaryChart(
                 totalAmount: billProvider.totalMonthlyAmount,
                 categoryBreakdown: billProvider.categoryBreakdown,
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               // Upcoming bills
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Upcoming Bills',
                     style: TextStyle(
                       fontSize: 20,
@@ -131,16 +133,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () {
                       // Navigate to bills list
                     },
-                    child: Text('See All'),
+                    child: const Text('See All'),
                   ),
                 ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               if (billProvider.isLoading)
-                Center(child: CircularProgressIndicator())
+                const Center(child: CircularProgressIndicator())
               else if (billProvider.upcomingBills.isEmpty)
-                Card(
+                const Card(
                   child: Padding(
                     padding: EdgeInsets.all(32),
                     child: Center(
@@ -163,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               else
                 ...billProvider.upcomingBills.map((bill) => Padding(
-                      padding: EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 8),
                       child: UpcomingBillCard(bill: bill),
                     )),
             ],

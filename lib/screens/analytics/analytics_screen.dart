@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../../providers/bill_provider.dart';
-import '../../models/bill.dart';
 import '../../config/theme.dart';
 import '../../widgets/analytics/category_pie_chart.dart';
 import '../../widgets/analytics/monthly_trend_chart.dart';
 import '../../widgets/analytics/stats_card.dart';
+import 'package:final_wali_file/extensions/string_extensions.dart';
+
 
 class AnalyticsScreen extends StatefulWidget {
+  const AnalyticsScreen({super.key});
+
   @override
   _AnalyticsScreenState createState() => _AnalyticsScreenState();
 }
@@ -30,7 +32,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Analytics'),
+        title: const Text('Analytics'),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -39,25 +41,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               });
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: 'This Month',
                 child: Text('This Month'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: 'Last 3 Months',
                 child: Text('Last 3 Months'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: 'This Year',
                 child: Text('This Year'),
               ),
             ],
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
                   Text(_selectedPeriod),
-                  Icon(Icons.arrow_drop_down),
+                  const Icon(Icons.arrow_drop_down),
                 ],
               ),
             ),
@@ -65,9 +67,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ],
       ),
       body: billProvider.isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : billProvider.bills.isEmpty
-              ? Center(
+              ? const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -97,8 +99,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               : RefreshIndicator(
                   onRefresh: () => billProvider.fetchBills(),
                   child: SingleChildScrollView(
-                    physics: AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.all(16),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -113,7 +115,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                 color: AppTheme.primaryColor,
                               ),
                             ),
-                            SizedBox(width: 16),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: StatsCard(
                                 title: 'Paid Bills',
@@ -124,7 +126,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
@@ -135,7 +137,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                 color: AppTheme.warningColor,
                               ),
                             ),
-                            SizedBox(width: 16),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: StatsCard(
                                 title: 'Average Bill',
@@ -146,33 +148,33 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 32),
+                        const SizedBox(height: 32),
 
                         // Category breakdown
-                        Text(
+                        const Text(
                           'Spending by Category',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Card(
                           child: Padding(
-                            padding: EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(16),
                             child: Column(
                               children: [
-                                Container(
+                                SizedBox(
                                   height: 200,
                                   child: CategoryPieChart(
                                     categoryBreakdown: billProvider.categoryBreakdown,
                                   ),
                                 ),
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
                                 // Legend
                                 ...billProvider.categoryBreakdown.entries.map(
                                   (entry) => Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 4),
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
                                     child: Row(
                                       children: [
                                         Container(
@@ -184,7 +186,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                             borderRadius: BorderRadius.circular(4),
                                           ),
                                         ),
-                                        SizedBox(width: 8),
+                                        const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
                                             entry.key.toString().split('.').last.capitalize(),
@@ -192,7 +194,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                         ),
                                         Text(
                                           '\$${entry.value.toStringAsFixed(2)}',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -204,21 +206,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 32),
+                        const SizedBox(height: 32),
 
                         // Monthly trend
-                        Text(
+                        const Text(
                           'Monthly Trend',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Card(
                           child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Container(
+                            padding: const EdgeInsets.all(16),
+                            child: SizedBox(
                               height: 200,
                               child: MonthlyTrendChart(bills: billProvider.bills),
                             ),
@@ -232,8 +234,3 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 }
 
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${this.substring(1)}";
-  }
-}

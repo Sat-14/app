@@ -81,7 +81,7 @@ class Helpers {
     while (nextDate.isBefore(now)) {
       switch (bill.frequency) {
         case BillFrequency.weekly:
-          nextDate = nextDate.add(Duration(days: 7));
+          nextDate = nextDate.add(const Duration(days: 7));
           break;
         case BillFrequency.monthly:
           nextDate = DateTime(
@@ -144,10 +144,10 @@ class Helpers {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(confirmText),
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
             ),
+            child: Text(confirmText),
           ),
         ],
       ),

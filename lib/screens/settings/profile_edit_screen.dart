@@ -4,6 +4,8 @@ import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
 
 class ProfileEditScreen extends StatefulWidget {
+  const ProfileEditScreen({super.key});
+
   @override
   _ProfileEditScreenState createState() => _ProfileEditScreenState();
 }
@@ -42,7 +44,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Profile updated successfully'),
             backgroundColor: Colors.green,
           ),
@@ -70,10 +72,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Profile'),
+        title: const Text('Edit Profile'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
@@ -86,10 +88,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       radius: 50,
                       child: Text(
                         user?.name[0].toUpperCase() ?? 'U',
-                        style: TextStyle(fontSize: 36),
+                        style: const TextStyle(fontSize: 36),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
                       user?.email ?? '',
                       style: TextStyle(
@@ -100,20 +102,20 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Full Name',
                   prefixIcon: Icon(Icons.person),
                 ),
                 validator: Validators.required,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Phone Number',
                   prefixIcon: Icon(Icons.phone),
                   hintText: '+91 9876543210',
@@ -121,13 +123,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 ),
                 validator: Validators.phoneNumber,
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _updateProfile,
                   child: _isLoading
-                      ? SizedBox(
+                      ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
@@ -135,7 +137,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : Text('Update Profile'),
+                      : const Text('Update Profile'),
                 ),
               ),
             ],

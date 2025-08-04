@@ -24,7 +24,7 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     primaryColor: primaryColor,
     scaffoldBackgroundColor: Colors.grey[50],
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       elevation: 0,
       backgroundColor: primaryColor,
       foregroundColor: Colors.white,
@@ -33,7 +33,7 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -43,9 +43,9 @@ class AppTheme {
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
       ),
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -56,8 +56,8 @@ class AppTheme {
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     primaryColor: primaryColor,
-    scaffoldBackgroundColor: Color(0xFF121212),
-    appBarTheme: AppBarTheme(
+    scaffoldBackgroundColor: const Color(0xFF121212),
+    appBarTheme: const AppBarTheme(
       elevation: 0,
       backgroundColor: Color(0xFF1E1E1E),
     ),
@@ -65,7 +65,7 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -75,9 +75,9 @@ class AppTheme {
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
       ),
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),

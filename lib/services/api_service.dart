@@ -103,6 +103,10 @@ class ApiService {
         throw Exception('Failed to send test reminder');
       }
     } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
 
   static Future<Map<String, dynamic>> register(String email, String password, String name, String phoneNumber) async {
     try {

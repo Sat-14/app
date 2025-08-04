@@ -5,6 +5,8 @@ import '../../services/api_service.dart';
 import '../../utils/helpers.dart';
 
 class ReminderSettingsScreen extends StatefulWidget {
+  const ReminderSettingsScreen({super.key});
+
   @override
   _ReminderSettingsScreenState createState() => _ReminderSettingsScreenState();
 }
@@ -82,12 +84,12 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reminder Settings'),
+        title: const Text('Reminder Settings'),
         actions: [
           if (!_isLoading)
             TextButton(
               onPressed: _saveSettings,
-              child: Text(
+              child: const Text(
                 'Save',
                 style: TextStyle(color: Colors.white),
               ),
@@ -95,18 +97,18 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
         ],
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Phone number status
                   if (!hasPhoneNumber)
                     Container(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
+                        color: Colors.orange.withAlpha((0.1 * 255).toInt()),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: Colors.orange.withOpacity(0.3),
@@ -114,8 +116,8 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.warning, color: Colors.orange),
-                          SizedBox(width: 16),
+                          const Icon(Icons.warning, color: Colors.orange),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +129,7 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                                     color: Colors.orange[900],
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
                                   'Add your phone number to enable WhatsApp and call reminders',
                                   style: TextStyle(
@@ -141,7 +143,7 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                         ],
                       ),
                     ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
                   // Reminder types
                   Text(
@@ -152,14 +154,14 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                       color: Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                   // Local notifications
                   Card(
                     child: SwitchListTile(
-                      title: Text('Push Notifications'),
-                      subtitle: Text('Get reminders on your device'),
-                      secondary: Icon(Icons.notifications),
+                      title: const Text('Push Notifications'),
+                      subtitle: const Text('Get reminders on your device'),
+                      secondary: const Icon(Icons.notifications),
                       value: _enableLocalNotifications,
                       onChanged: (value) {
                         setState(() {
@@ -168,16 +170,16 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                       },
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
                   // WhatsApp
                   Card(
                     child: Column(
                       children: [
                         SwitchListTile(
-                          title: Text('WhatsApp Messages'),
-                          subtitle: Text('Receive reminders via WhatsApp'),
-                          secondary: Icon(Icons.message, color: Colors.green),
+                          title: const Text('WhatsApp Messages'),
+                          subtitle: const Text('Receive reminders via WhatsApp'),
+                          secondary: const Icon(Icons.message, color: Colors.green),
                           value: _enableWhatsApp && hasPhoneNumber,
                           onChanged: hasPhoneNumber
                               ? (value) {
@@ -189,28 +191,28 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                         ),
                         if (_enableWhatsApp && hasPhoneNumber)
                           Padding(
-                            padding: EdgeInsets.only(left: 72, right: 16, bottom: 16),
+                            padding: const EdgeInsets.only(left: 72, right: 16, bottom: 16),
                             child: SizedBox(
                               width: double.infinity,
                               child: OutlinedButton(
                                 onPressed: () => _testReminder('whatsapp'),
-                                child: Text('Send Test WhatsApp'),
+                                child: const Text('Send Test WhatsApp'),
                               ),
                             ),
                           ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
                   // Calls
                   Card(
                     child: Column(
                       children: [
                         SwitchListTile(
-                          title: Text('Phone Calls'),
-                          subtitle: Text('Get reminder calls for urgent bills'),
-                          secondary: Icon(Icons.phone, color: Colors.blue),
+                          title: const Text('Phone Calls'),
+                          subtitle: const Text('Get reminder calls for urgent bills'),
+                          secondary: const Icon(Icons.phone, color: Colors.blue),
                           value: _enableCalls && hasPhoneNumber,
                           onChanged: hasPhoneNumber
                               ? (value) {
@@ -222,19 +224,19 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                         ),
                         if (_enableCalls && hasPhoneNumber)
                           Padding(
-                            padding: EdgeInsets.only(left: 72, right: 16, bottom: 16),
+                            padding: const EdgeInsets.only(left: 72, right: 16, bottom: 16),
                             child: SizedBox(
                               width: double.infinity,
                               child: OutlinedButton(
                                 onPressed: () => _testReminder('call'),
-                                child: Text('Send Test Call'),
+                                child: const Text('Send Test Call'),
                               ),
                             ),
                           ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
                   // Timing settings
                   Text(
@@ -245,13 +247,13 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                       color: Colors.grey[600],
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                   // Days before
                   Card(
                     child: ListTile(
-                      leading: Icon(Icons.calendar_today),
-                      title: Text('Remind me'),
+                      leading: const Icon(Icons.calendar_today),
+                      title: const Text('Remind me'),
                       subtitle: Text('$_daysBeforeReminder days before due date'),
                       trailing: DropdownButton<int>(
                         value: _daysBeforeReminder,
@@ -269,13 +271,13 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
                   // Preferred time
                   Card(
                     child: ListTile(
-                      leading: Icon(Icons.access_time),
-                      title: Text('Preferred time'),
+                      leading: const Icon(Icons.access_time),
+                      title: const Text('Preferred time'),
                       subtitle: Text('Send reminders at $_preferredTime'),
                       onTap: () async {
                         final time = await showTimePicker(
@@ -294,11 +296,11 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                     ),
                   ),
 
-                  SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
                   // Info
                   Container(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.blue.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -306,8 +308,8 @@ class _ReminderSettingsScreenState extends State<ReminderSettingsScreen> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.info, color: Colors.blue, size: 20),
-                        SizedBox(width: 12),
+                        const Icon(Icons.info, color: Colors.blue, size: 20),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'WhatsApp and call reminders will be sent to ${user?.phoneNumber ?? "your phone number"}. Standard messaging rates may apply.',

@@ -6,7 +6,7 @@ import '../../config/theme.dart';
 class UpcomingBillCard extends StatelessWidget {
   final Bill bill;
 
-  const UpcomingBillCard({Key? key, required this.bill}) : super(key: key);
+  const UpcomingBillCard({super.key, required this.bill});
 
   @override
   Widget build(BuildContext context) {
@@ -20,38 +20,38 @@ class UpcomingBillCard extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppTheme.categoryColors[
-                          bill.category.toString().split('.').last]
-                      ?.withOpacity(0.2),
+                  color: AppTheme
+                      .categoryColors[bill.category.toString().split('.').last]
+                      ?.withAlpha(51),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: Text(
                     Helpers.getCategoryEmoji(bill.category),
-                    style: TextStyle(fontSize: 24),
+                    style: const TextStyle(fontSize: 24),
                   ),
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       bill.name,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       Helpers.getDaysUntilDue(bill.dueDate),
                       style: TextStyle(
@@ -67,14 +67,14 @@ class UpcomingBillCard extends StatelessWidget {
                 children: [
                   Text(
                     Helpers.formatCurrency(bill.amount),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),

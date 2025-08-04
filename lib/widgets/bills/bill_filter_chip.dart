@@ -6,11 +6,11 @@ class BillFilterChip extends StatelessWidget {
   final VoidCallback onSelected;
 
   const BillFilterChip({
-    Key? key,
+    super.key,
     required this.label,
     required this.isSelected,
     required this.onSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -4,32 +4,18 @@ import 'package:timezone/data/latest.dart' as tz;
 import '../models/bill.dart';
 
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin _notifications = 
-      FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
 
-  static Future<void> scheduleAllBillReminders(Bill bill) async {
-    // Schedule reminders for 3 days, 1 day, and on due date
-    await scheduleBillReminder(bill, 3);
-    await scheduleBillReminder(bill, 1);
-    await scheduleBillReminder(bill, 0);
-  }
-}
-
-  static Future<void> cancelBillReminders(String billId) async {
-    // Cancel all reminders for a specific bill
-    await cancelNotification(billId.hashCode + 3);
-    await cancelNotification(billId.hashCode + 1);
-    await cancelNotification(billId.hashCode + 0);
-  } initialize() async {
+  static Future<void> initialize() async {
     tz.initializeTimeZones();
-    
+
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestSoundPermission: true,
       requestBadgePermission: true,
       requestAlertPermission: true,
     );
-    
+
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
@@ -42,13 +28,18 @@ class NotificationService {
   }
 
   static void _onNotificationTapped(NotificationResponse response) {
-    // Handle notification tap
-    // You can navigate to specific screen based on payload
+    // Handle notification tap if needed
+  }
+
+  static Future<void> scheduleAllBillReminders(Bill bill) async {
+    await scheduleBillReminder(bill, 3);
+    await scheduleBillReminder(bill, 1);
+    await scheduleBillReminder(bill, 0);
   }
 
   static Future<void> scheduleBillReminder(Bill bill, int daysBefore) async {
     final scheduledDate = bill.dueDate.subtract(Duration(days: daysBefore));
-    
+
     if (scheduledDate.isAfter(DateTime.now())) {
       const androidDetails = AndroidNotificationDetails(
         'bill_reminders',
@@ -66,17 +57,22 @@ class NotificationService {
       );
 
       await _notifications.zonedSchedule(
-        bill.id.hashCode + daysBefore, // Unique ID for each reminder
+        bill.id.hashCode + daysBefore,
         'Bill Due Soon',
-        '${bill.name} - \$${bill.amount.toStringAsFixed(2)} due in $daysBefore days',
+        '${bill.name} - \$${bill.amount.toStringAsFixed(2)} due in $daysBefore day(s)',
         tz.TZDateTime.from(scheduledDate, tz.local),
         details,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: bill.id,
       );
     }
+  }
+
+  static Future<void> cancelBillReminders(String billId) async {
+    await cancelNotification(billId.hashCode + 3);
+    await cancelNotification(billId.hashCode + 1);
+    await cancelNotification(billId.hashCode + 0);
   }
 
   static Future<void> showInstantNotification(String title, String body) async {
@@ -110,5 +106,4 @@ class NotificationService {
   static Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
   }
-
-  static Future<void>
+}

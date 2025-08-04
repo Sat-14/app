@@ -7,6 +7,8 @@ import 'analytics/analytics_screen.dart';
 import 'settings/settings_screen.dart';
 
 class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
+
   @override
   _MainNavigationState createState() => _MainNavigationState();
 }
@@ -15,10 +17,10 @@ class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   
   final List<Widget> _screens = [
-    HomeScreen(),
-    BillsListScreen(),
-    AnalyticsScreen(),
-    SettingsScreen(),
+    const HomeScreen(),
+    const BillsListScreen(),
+    const AnalyticsScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -45,7 +47,7 @@ class _MainNavigationState extends State<MainNavigation> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',

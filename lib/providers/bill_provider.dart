@@ -13,6 +13,7 @@ class BillProvider extends ChangeNotifier {
   List<Bill> get bills => _bills;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  BillCategory? get selectedCategory => _selectedCategory;
 
   List<Bill> get filteredBills {
     return _bills.where((bill) {
@@ -24,7 +25,7 @@ class BillProvider extends ChangeNotifier {
 
   List<Bill> get upcomingBills {
     final now = DateTime.now();
-    final weekLater = now.add(Duration(days: 7));
+    final weekLater = now.add(const Duration(days: 7));
     return _bills.where((bill) {
       return !bill.isPaid && 
              bill.dueDate.isAfter(now) && 

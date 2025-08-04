@@ -4,6 +4,8 @@ import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
 
 class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -55,19 +57,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Account'),
+        title: const Text('Create Account'),
       ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
+                  const Text(
                     'Sign Up',
                     style: TextStyle(
                       fontSize: 28,
@@ -75,7 +77,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'Create an account to get started',
                     style: TextStyle(
@@ -84,43 +86,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 32),
+                  const SizedBox(height: 32),
                   TextFormField(
                     controller: _nameController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Full Name',
                       prefixIcon: Icon(Icons.person),
                     ),
                     validator: Validators.required,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Phone Number',
                       prefixIcon: Icon(Icons.phone),
                       hintText: '+91 9876543210',
                     ),
                     validator: Validators.phoneNumber,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Email',
                       prefixIcon: Icon(Icons.email),
                     ),
                     validator: Validators.email,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock),
+                      prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Icons.visibility : Icons.visibility_off,
@@ -134,13 +136,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     validator: Validators.password,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: _obscureConfirmPassword,
                     decoration: InputDecoration(
                       labelText: 'Confirm Password',
-                      prefixIcon: Icon(Icons.lock),
+                      prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
@@ -159,11 +161,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: authProvider.isLoading ? null : _register,
                     child: authProvider.isLoading
-                        ? SizedBox(
+                        ? const SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
@@ -171,7 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : Text('Sign Up'),
+                        : const Text('Sign Up'),
                   ),
                 ],
               ),

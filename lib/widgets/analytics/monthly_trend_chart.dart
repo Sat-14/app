@@ -8,16 +8,16 @@ class MonthlyTrendChart extends StatelessWidget {
   final List<Bill> bills;
 
   const MonthlyTrendChart({
-    Key? key,
+    super.key,
     required this.bills,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final monthlyData = _calculateMonthlyData();
     
     if (monthlyData.isEmpty) {
-      return Center(
+      return const Center(
         child: Text(
           'No data available',
           style: TextStyle(color: Colors.grey),
@@ -40,8 +40,8 @@ class MonthlyTrendChart extends StatelessWidget {
         ),
         titlesData: FlTitlesData(
           show: true,
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -49,7 +49,7 @@ class MonthlyTrendChart extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return Text(
                   '\$${value.toInt()}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.grey,
                     fontSize: 12,
                   ),
@@ -64,10 +64,10 @@ class MonthlyTrendChart extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 if (value.toInt() >= 0 && value.toInt() < monthlyData.length) {
                   return Padding(
-                    padding: EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       monthlyData[value.toInt()].month,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 12,
                       ),

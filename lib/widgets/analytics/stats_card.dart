@@ -7,18 +7,18 @@ class StatsCard extends StatelessWidget {
   final Color color;
 
   const StatsCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.icon,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -38,14 +38,14 @@ class StatsCard extends StatelessWidget {
                     size: 24,
                   ),
                 ),
-                Icon(
+                const Icon(
                   Icons.trending_up,
                   color: Colors.green,
                   size: 16,
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               title,
               style: TextStyle(
@@ -53,10 +53,10 @@ class StatsCard extends StatelessWidget {
                 color: Colors.grey[600],
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               value,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),

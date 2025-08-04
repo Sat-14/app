@@ -5,10 +5,10 @@ class QuickActionsRow extends StatelessWidget {
   final VoidCallback onViewReports;
 
   const QuickActionsRow({
-    Key? key,
+    super.key,
     required this.onAddBill,
     required this.onViewReports,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class QuickActionsRow extends StatelessWidget {
             onTap: onAddBill,
           ),
         ),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         Expanded(
           child: _QuickActionCard(
             icon: Icons.analytics,
@@ -43,12 +43,11 @@ class _QuickActionCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _QuickActionCard({
-    Key? key,
     required this.icon,
     required this.label,
     required this.color,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +56,7 @@ class _QuickActionCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
@@ -72,11 +71,11 @@ class _QuickActionCard extends StatelessWidget {
                   color: color,
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),

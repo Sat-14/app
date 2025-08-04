@@ -2,22 +2,24 @@ import 'package:flutter/material.dart';
 import '../../models/bill.dart';
 import '../../utils/helpers.dart';
 import '../../config/theme.dart';
+import 'package:final_wali_file/extensions/string_extensions.dart';
+
 
 class MonthlySummaryChart extends StatelessWidget {
   final double totalAmount;
   final Map<BillCategory, double> categoryBreakdown;
 
   const MonthlySummaryChart({
-    Key? key,
+    super.key,
     required this.totalAmount,
     required this.categoryBreakdown,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -34,10 +36,10 @@ class MonthlySummaryChart extends StatelessWidget {
                         color: Colors.grey[600],
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       Helpers.formatCurrency(totalAmount),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -47,11 +49,12 @@ class MonthlySummaryChart extends StatelessWidget {
                 Icon(
                   Icons.pie_chart,
                   size: 48,
-                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  color: Theme.of(context).primaryColor.withAlpha((0.3 * 255).round()),
+
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
               'By Category',
               style: TextStyle(
@@ -60,7 +63,7 @@ class MonthlySummaryChart extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             ...categoryBreakdown.entries.map((entry) {
               final percentage = totalAmount > 0
                   ? (entry.value / totalAmount * 100).toStringAsFixed(0)
@@ -69,7 +72,7 @@ class MonthlySummaryChart extends StatelessWidget {
               final color = AppTheme.categoryColors[categoryName]!;
 
               return Padding(
-                padding: EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
                     Container(
@@ -80,21 +83,21 @@ class MonthlySummaryChart extends StatelessWidget {
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         categoryName.capitalize(),
-                        style: TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: 14),
                       ),
                     ),
                     Text(
                       '$percentage%',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       Helpers.formatCurrency(entry.value),
                       style: TextStyle(
@@ -113,8 +116,3 @@ class MonthlySummaryChart extends StatelessWidget {
   }
 }
 
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${this.substring(1)}";
-  }
-}

@@ -7,9 +7,9 @@ class CategoryPieChart extends StatefulWidget {
   final Map<BillCategory, double> categoryBreakdown;
 
   const CategoryPieChart({
-    Key? key,
+    super.key,
     required this.categoryBreakdown,
-  }) : super(key: key);
+  });
 
   @override
   _CategoryPieChartState createState() => _CategoryPieChartState();
@@ -21,7 +21,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.categoryBreakdown.isEmpty) {
-      return Center(
+      return const Center(
         child: Text(
           'No data available',
           style: TextStyle(color: Colors.grey),

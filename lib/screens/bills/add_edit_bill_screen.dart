@@ -5,11 +5,15 @@ import '../../models/bill.dart';
 import '../../providers/bill_provider.dart';
 import '../../utils/validators.dart';
 import '../../config/theme.dart';
+import 'package:final_wali_file/providers/auth_provider.dart';
+import 'package:final_wali_file/extensions/string_extensions.dart';
+
+
 
 class AddEditBillScreen extends StatefulWidget {
   final Bill? bill;
 
-  AddEditBillScreen({this.bill});
+  const AddEditBillScreen({super.key, this.bill});
 
   @override
   _AddEditBillScreenState createState() => _AddEditBillScreenState();
@@ -63,7 +67,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
 
     if (picked != null) {
@@ -102,7 +106,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
         if (widget.bill == null) {
           await billProvider.addBill(bill);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Bill added successfully'),
               backgroundColor: Colors.green,
             ),
@@ -110,7 +114,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
         } else {
           await billProvider.updateBill(bill);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Bill updated successfully'),
               backgroundColor: Colors.green,
             ),
@@ -142,7 +146,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
         title: Text(isEditing ? 'Edit Bill' : 'Add New Bill'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
@@ -151,19 +155,19 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
               // Bill name
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Bill Name',
                   prefixIcon: Icon(Icons.receipt),
                 ),
                 validator: Validators.required,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Amount
               TextFormField(
                 controller: _amountController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
                   labelText: 'Amount',
                   prefixIcon: Icon(Icons.attach_money),
                 ),
@@ -177,13 +181,13 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Due date
               InkWell(
                 onTap: _selectDate,
                 child: InputDecorator(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Due Date',
                     prefixIcon: Icon(Icons.calendar_today),
                   ),
@@ -191,17 +195,17 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(DateFormat('MMM dd, yyyy').format(_selectedDate)),
-                      Icon(Icons.arrow_drop_down),
+                      const Icon(Icons.arrow_drop_down),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Category
               DropdownButtonFormField<BillCategory>(
                 value: _selectedCategory,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Category',
                   prefixIcon: Icon(Icons.category),
                 ),
@@ -219,7 +223,7 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(category.toString().split('.').last.capitalize()),
                       ],
                     ),
@@ -231,12 +235,12 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                   });
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Frequency
               DropdownButtonFormField<BillFrequency>(
                 value: _selectedFrequency,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Frequency',
                   prefixIcon: Icon(Icons.repeat),
                 ),
@@ -252,31 +256,31 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                   });
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Notes
               TextFormField(
                 controller: _notesController,
                 maxLines: 3,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Notes (Optional)',
                   prefixIcon: Icon(Icons.note),
                   alignLabelWithHint: true,
                 ),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               // Reminder preferences (only show if user has phone number)
               if (context.read<AuthProvider>().user?.phoneNumber != null &&
                   context.read<AuthProvider>().user!.phoneNumber!.isNotEmpty) ...[
-                Text(
+                const Text(
                   'Reminder Preferences',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   'Choose how you want to be reminded for this bill',
                   style: TextStyle(
@@ -284,13 +288,13 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                     color: Colors.grey[600],
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Card(
                   child: Column(
                     children: [
                       CheckboxListTile(
-                        title: Text('Push Notifications'),
-                        secondary: Icon(Icons.notifications),
+                        title: const Text('Push Notifications'),
+                        secondary: const Icon(Icons.notifications),
                         value: _enableLocalNotification,
                         onChanged: (value) {
                           setState(() {
@@ -298,10 +302,10 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                           });
                         },
                       ),
-                      Divider(height: 1),
+                      const Divider(height: 1),
                       CheckboxListTile(
-                        title: Text('WhatsApp Message'),
-                        secondary: Icon(Icons.message, color: Colors.green),
+                        title: const Text('WhatsApp Message'),
+                        secondary: const Icon(Icons.message, color: Colors.green),
                         value: _enableWhatsApp,
                         onChanged: (value) {
                           setState(() {
@@ -309,10 +313,10 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                           });
                         },
                       ),
-                      Divider(height: 1),
+                      const Divider(height: 1),
                       CheckboxListTile(
-                        title: Text('Phone Call'),
-                        secondary: Icon(Icons.phone, color: Colors.blue),
+                        title: const Text('Phone Call'),
+                        secondary: const Icon(Icons.phone, color: Colors.blue),
                         value: _enableCall,
                         onChanged: (value) {
                           setState(() {
@@ -323,14 +327,14 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
               ],
 
               // Save button
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveBill,
                 child: _isLoading
-                    ? SizedBox(
+                    ? const SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
@@ -348,8 +352,3 @@ class _AddEditBillScreenState extends State<AddEditBillScreen> {
   }
 }
 
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${this.substring(1)}";
-  }
-}
