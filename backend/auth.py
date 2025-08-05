@@ -4,78 +4,103 @@ from models import db, User, ReminderSettings
 import bcrypt
 from datetime import datetime
 import re
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 auth_bp = Blueprint('auth', __name__)
 
 def validate_email(email):
     """Validate email format"""
+    logger.debug(f"[VALIDATE EMAIL] Checking email format: {email}")
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return re.match(pattern, email) is not None
+    is_valid = re.match(pattern, email) is not None
+    logger.debug(f"[VALIDATE EMAIL] Email valid: {is_valid}")
+    return is_valid
 
 def validate_phone(phone):
     """Validate phone number format"""
+    logger.debug(f"[VALIDATE PHONE] Checking phone format: {phone}")
     # Remove all non-digit characters for validation
     digits_only = re.sub(r'\D', '', phone)
+    logger.debug(f"[VALIDATE PHONE] Digits only: {digits_only}, Length: {len(digits_only)}")
     # Check if it has at least 10 digits
-    return len(digits_only) >= 10
+    is_valid = len(digits_only) >= 10
+    logger.debug(f"[VALIDATE PHONE] Phone valid: {is_valid}")
+    return is_valid
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
+    logger.info("[REGISTER] New registration request received")
     try:
         data = request.get_json()
+        logger.debug(f"[REGISTER] Request data keys: {list(data.keys()) if data else 'No data'}")
         
-        # Validate request data
         if not data:
+            logger.warning("[REGISTER] No data provided in request")
             return jsonify({'message': 'No data provided'}), 400
         
-        # Validate required fields
         required = ['email', 'password', 'name', 'phone_number']
         missing_fields = [field for field in required if field not in data or not data[field]]
         if missing_fields:
+            logger.warning(f"[REGISTER] Missing required fields: {missing_fields}")
             return jsonify({'message': f'Missing required fields: {", ".join(missing_fields)}'}), 400
         
-        # Validate email format
+        logger.debug(f"[REGISTER] Registration attempt for email: {data['email']}")
+        
         if not validate_email(data['email']):
+            logger.warning(f"[REGISTER] Invalid email format: {data['email']}")
             return jsonify({'message': 'Invalid email format'}), 400
         
-        # Validate password length
-        if len(data['password']) < 6:
+        password_length = len(data['password'])
+        logger.debug(f"[REGISTER] Password length: {password_length}")
+        if password_length < 6:
+            logger.warning(f"[REGISTER] Password too short: {password_length} characters")
             return jsonify({'message': 'Password must be at least 6 characters long'}), 400
         
-        # Validate phone number
         if not validate_phone(data['phone_number']):
+            logger.warning(f"[REGISTER] Invalid phone number: {data['phone_number']}")
             return jsonify({'message': 'Invalid phone number format'}), 400
         
-        # Check if user exists
-        existing_user = User.query.filter_by(email=data['email'].lower()).first()
+        email_lower = data['email'].lower()
+        logger.debug(f"[REGISTER] Checking if user exists with email: {email_lower}")
+        existing_user = User.query.filter_by(email=email_lower).first()
         if existing_user:
+            logger.warning(f"[REGISTER] Email already registered: {email_lower}")
             return jsonify({'message': 'Email already registered'}), 409
         
-        # Hash password
+        logger.info(f"[REGISTER] Creating new user for email: {email_lower}")
+        
+        logger.debug("[REGISTER] Hashing password")
         password_hash = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
         
-        # Create user
         user = User(
-            email=data['email'].lower(),  # Store email in lowercase
+            email=email_lower,
             password_hash=password_hash.decode('utf-8'),
             name=data['name'].strip(),
             phone_number=data['phone_number'].strip()
         )
         
-        # Add user to session and flush to get the ID
-        db.session.add(user)
-        db.session.flush()  # This assigns the ID without committing
+        logger.debug(f"[REGISTER] User object created - Name: {user.name}, Phone: {user.phone_number}")
         
-        # Create default reminder settings with the user ID
+        db.session.add(user)
+        db.session.flush()
+        logger.debug(f"[REGISTER] User added to session with ID: {user.id}")
+        
+        logger.debug(f"[REGISTER] Creating default reminder settings for user: {user.id}")
         reminder_settings = ReminderSettings(user_id=user.id)
         db.session.add(reminder_settings)
         
-        # Commit both user and reminder settings
+        logger.info(f"[REGISTER] Committing user and settings to database")
         db.session.commit()
+        logger.info(f"[REGISTER] User successfully registered with ID: {user.id}")
         
-        # Create token
+        logger.debug(f"[REGISTER] Creating JWT token for user: {user.id}")
         token = create_access_token(identity=user.id)
         
+        logger.info(f"[REGISTER] Registration successful for user: {user.email}")
         return jsonify({
             'token': token,
             'user': {
@@ -87,33 +112,47 @@ def register():
         }), 201
         
     except Exception as e:
+        logger.error(f"[REGISTER ERROR] Registration failed: {str(e)}", exc_info=True)
         db.session.rollback()
-        print(f"Registration error: {str(e)}")  # Log the error for debugging
+        print(f"Registration error: {str(e)}")
         return jsonify({'message': 'An error occurred during registration'}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    logger.info("[LOGIN] Login request received")
     try:
         data = request.get_json()
+        logger.debug(f"[LOGIN] Request data keys: {list(data.keys()) if data else 'No data'}")
         
-        # Validate request data
-        if not data:
-            return jsonify({'message': 'No data provided'}), 400
-        
-        if not data.get('email') or not data.get('password'):
+        if not data or not data.get('email') or not data.get('password'):
+            logger.warning("[LOGIN] Missing email or password")
             return jsonify({'message': 'Email and password required'}), 400
         
-        # Find user by email (case-insensitive)
-        user = User.query.filter_by(email=data['email'].lower()).first()
+        email_lower = data['email'].lower()
+        logger.debug(f"[LOGIN] Login attempt for email: {email_lower}")
+        
+        user = User.query.filter_by(email=email_lower).first()
         
         if not user:
+            logger.warning(f"[LOGIN] User not found: {email_lower}")
             return jsonify({'message': 'Invalid credentials'}), 401
         
-        # Check password
-        if not bcrypt.checkpw(data['password'].encode('utf-8'), user.password_hash.encode('utf-8')):
+        logger.debug(f"[LOGIN] User found with ID: {user.id}")
+        
+        # --- NEW DEBUG LOGGING ---
+        logger.debug(f"--- PASSWORD CHECK ---")
+        logger.debug(f"Password from App: '{data['password']}'")
+        logger.debug(f"Hash from DB:      '{user.password_hash}'")
+        logger.debug(f"----------------------")
+        # --- END NEW DEBUG LOGGING ---
+
+        password_valid = bcrypt.checkpw(data['password'].encode('utf-8'), user.password_hash.encode('utf-8'))
+        
+        if not password_valid:
+            logger.warning(f"[LOGIN] Password check FAILED for user: {email_lower}")
             return jsonify({'message': 'Invalid credentials'}), 401
         
-        # Create token
+        logger.info(f"[LOGIN] Password check PASSED for user: {email_lower}")
         token = create_access_token(identity=user.id)
         
         return jsonify({
@@ -127,19 +166,27 @@ def login():
         }), 200
         
     except Exception as e:
-        print(f"Login error: {str(e)}")  # Log the error for debugging
+        logger.error(f"[LOGIN ERROR] Login failed: {str(e)}", exc_info=True)
+        print(f"Login error: {str(e)}")
         return jsonify({'message': 'An error occurred during login'}), 500
+
+# ... (the rest of your auth.py file remains the same) ...
 
 @auth_bp.route('/profile', methods=['GET'])
 @jwt_required()
 def get_profile():
+    logger.info("[GET PROFILE] Profile request received")
     try:
         user_id = get_jwt_identity()
+        logger.debug(f"[GET PROFILE] JWT identity: {user_id}")
+        
         user = User.query.get(user_id)
         
         if not user:
+            logger.warning(f"[GET PROFILE] User not found: {user_id}")
             return jsonify({'message': 'User not found'}), 404
         
+        logger.info(f"[GET PROFILE] Profile retrieved for user: {user.email}")
         return jsonify({
             'id': user.id,
             'email': user.email,
@@ -149,35 +196,53 @@ def get_profile():
         }), 200
         
     except Exception as e:
+        logger.error(f"[GET PROFILE ERROR] Failed to get profile: {str(e)}", exc_info=True)
         print(f"Get profile error: {str(e)}")
         return jsonify({'message': 'An error occurred while fetching profile'}), 500
 
 @auth_bp.route('/profile', methods=['PUT'])
 @jwt_required()
 def update_profile():
+    logger.info("[UPDATE PROFILE] Profile update request received")
     try:
         user_id = get_jwt_identity()
+        logger.debug(f"[UPDATE PROFILE] JWT identity: {user_id}")
+        
         user = User.query.get(user_id)
         
         if not user:
+            logger.warning(f"[UPDATE PROFILE] User not found: {user_id}")
             return jsonify({'message': 'User not found'}), 404
         
         data = request.get_json()
         if not data:
+            logger.warning("[UPDATE PROFILE] No data provided")
             return jsonify({'message': 'No data provided'}), 400
         
-        # Update name if provided
-        if 'name' in data and data['name']:
-            user.name = data['name'].strip()
+        logger.debug(f"[UPDATE PROFILE] Update data keys: {list(data.keys())}")
+        updates = []
         
-        # Update phone number if provided
+        if 'name' in data and data['name']:
+            old_name = user.name
+            user.name = data['name'].strip()
+            updates.append(f"name: '{old_name}' -> '{user.name}'")
+            logger.debug(f"[UPDATE PROFILE] Name updated: {old_name} -> {user.name}")
+        
         if 'phone_number' in data and data['phone_number']:
             if not validate_phone(data['phone_number']):
+                logger.warning(f"[UPDATE PROFILE] Invalid phone number: {data['phone_number']}")
                 return jsonify({'message': 'Invalid phone number format'}), 400
+            old_phone = user.phone_number
             user.phone_number = data['phone_number'].strip()
+            updates.append(f"phone: '{old_phone}' -> '{user.phone_number}'")
+            logger.debug(f"[UPDATE PROFILE] Phone updated: {old_phone} -> {user.phone_number}")
         
-        # Commit changes
-        db.session.commit()
+        if updates:
+            logger.info(f"[UPDATE PROFILE] Updating user {user_id}: {', '.join(updates)}")
+            db.session.commit()
+            logger.info(f"[UPDATE PROFILE] Profile updated successfully for user: {user.email}")
+        else:
+            logger.info(f"[UPDATE PROFILE] No changes made for user: {user.email}")
         
         return jsonify({
             'id': user.id,
@@ -187,6 +252,7 @@ def update_profile():
         }), 200
         
     except Exception as e:
+        logger.error(f"[UPDATE PROFILE ERROR] Failed to update profile: {str(e)}", exc_info=True)
         db.session.rollback()
         print(f"Update profile error: {str(e)}")
         return jsonify({'message': 'An error occurred while updating profile'}), 500
@@ -194,21 +260,26 @@ def update_profile():
 @auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    # JWT tokens are stateless, so we just return success
-    # In a production app, you might want to implement a token blacklist
+    user_id = get_jwt_identity()
+    logger.info(f"[LOGOUT] Logout request from user: {user_id}")
     return jsonify({'message': 'Logged out successfully'}), 200
 
 @auth_bp.route('/verify-token', methods=['GET'])
 @jwt_required()
 def verify_token():
     """Endpoint to verify if a token is still valid"""
+    logger.info("[VERIFY TOKEN] Token verification request")
     try:
         user_id = get_jwt_identity()
+        logger.debug(f"[VERIFY TOKEN] JWT identity: {user_id}")
+        
         user = User.query.get(user_id)
         
         if not user:
+            logger.warning(f"[VERIFY TOKEN] Invalid token - user not found: {user_id}")
             return jsonify({'message': 'Invalid token'}), 401
         
+        logger.info(f"[VERIFY TOKEN] Token valid for user: {user.email}")
         return jsonify({
             'valid': True,
             'user': {
@@ -220,5 +291,6 @@ def verify_token():
         }), 200
         
     except Exception as e:
+        logger.error(f"[VERIFY TOKEN ERROR] Token verification failed: {str(e)}", exc_info=True)
         print(f"Token verification error: {str(e)}")
         return jsonify({'message': 'Invalid token'}), 401

@@ -2,58 +2,119 @@ import os
 import tempfile
 from elevenlabs import generate, Voice, VoiceSettings, save, set_api_key, voices
 from dotenv import load_dotenv
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Load environment variables from a .env file
+logger.info("[ELEVENLABS INIT] Loading environment variables")
 load_dotenv()
 
 # Set your ElevenLabs API key
-set_api_key(os.getenv("ELEVENLABS_API_KEY"))
+api_key = os.getenv("ELEVENLABS_API_KEY")
+logger.info(f"[ELEVENLABS INIT] API key loaded: {'*' * 30 + api_key[-4:] if api_key else 'NOT SET'}")
+
+try:
+    set_api_key(api_key)
+    logger.info("[ELEVENLABS INIT] API key successfully set")
+except Exception as e:
+    logger.error(f"[ELEVENLABS INIT ERROR] Failed to set API key: {str(e)}")
 
 def generate_voice_audio(text: str, voice_id: str = None):
     """Generate voice audio using ElevenLabs API."""
+    logger.info("[ELEVENLABS GENERATE] Starting audio generation")
+    logger.debug(f"[ELEVENLABS GENERATE] Text length: {len(text)} characters")
+    logger.debug(f"[ELEVENLABS GENERATE] Text preview: {text[:100]}...")
+    logger.debug(f"[ELEVENLABS GENERATE] Voice ID provided: {voice_id}")
+    
     try:
         # Use default voice ID if none is provided
         if not voice_id:
-            voice_id = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
-
+            default_voice_id = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+            voice_id = default_voice_id
+            logger.info(f"[ELEVENLABS GENERATE] Using default voice ID: {voice_id}")
+        else:
+            logger.info(f"[ELEVENLABS GENERATE] Using provided voice ID: {voice_id}")
+        
+        # Log voice settings
+        voice_settings = VoiceSettings(
+            stability=0.5,
+            similarity_boost=0.75,
+            style=0.5,
+            use_speaker_boost=True
+        )
+        logger.debug(f"[ELEVENLABS GENERATE] Voice settings - Stability: 0.5, Similarity: 0.75, Style: 0.5, Speaker boost: True")
+        
         # Generate audio
+        logger.info("[ELEVENLABS GENERATE] Calling ElevenLabs API to generate audio")
         audio = generate(
             text=text,
             voice=Voice(
                 voice_id=voice_id,
-                settings=VoiceSettings(
-                    stability=0.5,
-                    similarity_boost=0.75,
-                    style=0.5,
-                    use_speaker_boost=True
-                )
+                settings=voice_settings
             )
         )
-
+        logger.info("[ELEVENLABS GENERATE] Audio generated successfully")
+        
         # Save to temporary file
+        logger.debug("[ELEVENLABS GENERATE] Creating temporary file for audio")
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
-            save(audio, tmp_file.name)
-            return {"success": True, "audio_path": tmp_file.name}
-
+            temp_path = tmp_file.name
+            logger.debug(f"[ELEVENLABS GENERATE] Temporary file path: {temp_path}")
+            
+            logger.info("[ELEVENLABS GENERATE] Saving audio to temporary file")
+            save(audio, temp_path)
+            
+            # Verify file was created and get size
+            if os.path.exists(temp_path):
+                file_size = os.path.getsize(temp_path)
+                logger.info(f"[ELEVENLABS GENERATE] Audio file saved successfully. Size: {file_size} bytes")
+            else:
+                logger.error(f"[ELEVENLABS GENERATE] Audio file not found after save: {temp_path}")
+            
+            return {"success": True, "audio_path": temp_path}
+            
     except Exception as e:
+        logger.error(f"[ELEVENLABS GENERATE ERROR] Failed to generate audio: {str(e)}", exc_info=True)
+        logger.debug(f"[ELEVENLABS GENERATE ERROR] Error type: {type(e).__name__}")
         print(f"Error generating ElevenLabs audio: {e}")
         return {"success": False, "error": str(e)}
 
 def get_available_voices():
     """Get list of available voices from ElevenLabs."""
+    logger.info("[ELEVENLABS VOICES] Fetching available voices")
+    
     try:
+        logger.debug("[ELEVENLABS VOICES] Calling ElevenLabs API to get voices")
         available_voices = voices()  # this returns a list of Voice objects
-
-        voice_list = [
-            {
+        
+        logger.info(f"[ELEVENLABS VOICES] Retrieved {len(available_voices)} voices")
+        
+        voice_list = []
+        for voice in available_voices:
+            voice_data = {
                 "voice_id": voice.voice_id,
                 "name": voice.name,
                 "category": voice.category,
             }
-            for voice in available_voices
-        ]
-
+            voice_list.append(voice_data)
+            logger.debug(f"[ELEVENLABS VOICES] Voice: {voice.name} (ID: {voice.voice_id}, Category: {voice.category})")
+        
+        logger.info(f"[ELEVENLABS VOICES] Successfully processed {len(voice_list)} voices")
+        
+        # Log categories summary
+        categories = {}
+        for v in voice_list:
+            cat = v.get('category', 'unknown')
+            categories[cat] = categories.get(cat, 0) + 1
+        logger.debug(f"[ELEVENLABS VOICES] Voice categories: {categories}")
+        
         return {"success": True, "voices": voice_list}
+        
     except Exception as e:
+        logger.error(f"[ELEVENLABS VOICES ERROR] Failed to get voices: {str(e)}", exc_info=True)
+        logger.debug(f"[ELEVENLABS VOICES ERROR] Error type: {type(e).__name__}")
         print(f"Error getting ElevenLabs voices: {e}")
         return {"success": False, "error": str(e)}

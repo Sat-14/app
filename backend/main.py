@@ -12,16 +12,43 @@ from kivy.core.window import Window
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button # This import is fine and necessary
 from kivy.storage.jsonstore import JsonStore
-from kivy.uix.button import Button
 from kivy.properties import ListProperty
 
+
+# --- Imports for Glassy UI ---
+from kivy.uix.button import Button
+from kivy.graphics.texture import Texture
+from kivy.animation import Animation
 import requests
 import json
 from datetime import datetime
 from functools import partial
 import threading
+
+# --- Add this new Class for the Glassy Button ---
+class GlassyButton(Button):
+    def _create_gradient(self, color1, color2):
+        # Add a check to ensure colors are valid before proceeding
+        if not color1 or not color2 or self.width <= 0 or self.height <= 0:
+            return Texture.create(size=(1, 1)) # Return a blank texture
+
+        texture = Texture.create(size=(self.width, self.height), colorfmt='rgba')
+        buf = bytearray()
+        for x in range(int(self.width)):
+            for y in range(int(self.height)):
+                mix_ratio = x / float(self.width)
+                r = color1[0] * (1.0 - mix_ratio) + color2[0] * mix_ratio
+                g = color1[1] * (1.0 - mix_ratio) + color2[1] * mix_ratio
+                b = color1[2] * (1.0 - mix_ratio) + color2[2] * mix_ratio
+                a = color1[3] * (1.0 - mix_ratio) + color2[3] * mix_ratio
+                buf.extend([int(c * 255) for c in (r, g, b, a)])
+        
+        texture.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
+        return texture
+# -------------------------------------------------
+
+
 
 # Set window size for desktop testing
 if platform != 'android':
@@ -226,6 +253,7 @@ class DashboardScreen(Screen):
     def on_enter(self):
         """Called when screen is displayed"""
         self.load_bills()
+        self.update_nav_buttons()
 
     def update_nav_buttons(self):
         """Update navigation button colors based on current screen"""
@@ -314,8 +342,6 @@ class BillItem(BoxLayout):
         if bill_id:
             app.api.mark_bill_paid(bill_id, self.on_paid_response)
     
-   
-    # In main.py, replace the existing on_paid_response method in the BillItem class with this one:
     def on_paid_response(self, response, error=None):
         """Handle mark as paid response"""
         app = App.get_running_app()
@@ -323,7 +349,6 @@ class BillItem(BoxLayout):
             app.root.get_screen('dashboard').load_bills()  # Reload bills
         else:
             app.show_popup('Error', 'Failed to mark bill as paid')
-            
             
     def edit_bill(self):
         """Navigate to edit bill screen"""
@@ -367,10 +392,10 @@ class BillItem(BoxLayout):
     
     def on_delete_response(self, response, error=None):
         """Handle delete response"""
+        app = App.get_running_app()
         if response and response.status_code == 204:
-            self.parent.parent.parent.load_bills()  # Reload bills
+            app.root.get_screen('dashboard').load_bills()
         else:
-            app = App.get_running_app()
             app.show_popup('Error', 'Failed to delete bill')
 
 class AddBillScreen(Screen):
@@ -393,7 +418,6 @@ class AddBillScreen(Screen):
         self.ids.bill_frequency.text = self.bill_data.get('frequency', 'monthly')
         self.ids.bill_notes.text = self.bill_data.get('notes', '')
         
-        # New: Set the state of the call reminder switch
         reminder_prefs = self.bill_data.get('reminder_preferences', {})
         self.ids.enable_call_switch.active = reminder_prefs.get('enable_call', False)
         
@@ -415,13 +439,10 @@ class AddBillScreen(Screen):
         self.ids.bill_notes.text = ''
         self.bill_data = {}
         self.is_edit_mode = False
-        
-        # New: Set default state for the call reminder switch
         self.ids.enable_call_switch.active = False
     
     def save_bill(self):
         """Save or update bill"""
-        # Validate form
         if not self.ids.bill_name.text or not self.ids.bill_amount.text or not self.ids.bill_due_date.text:
             self.show_error("Please fill all required fields")
             return
@@ -432,7 +453,6 @@ class AddBillScreen(Screen):
             self.show_error("Invalid amount")
             return
         
-        # Prepare bill data
         bill_data = {
             'name': self.ids.bill_name.text,
             'amount': amount,
@@ -442,7 +462,7 @@ class AddBillScreen(Screen):
             'notes': self.ids.bill_notes.text,
             'reminder_preferences': {
                 'enable_whatsapp': True,
-                'enable_call': self.ids.enable_call_switch.active, # New: Read the state of the switch
+                'enable_call': self.ids.enable_call_switch.active,
                 'enable_sms': False,
                 'enable_local_notification': True
             }
@@ -544,17 +564,13 @@ class BillsReminderApp(App):
         self.api = APIManager()
         self.title = 'Bills Reminder'
         
-        # Create screen manager
         sm = ScreenManager()
-        
-        # Add screens
         sm.add_widget(LoginScreen(name='login'))
         sm.add_widget(RegisterScreen(name='register'))
         sm.add_widget(DashboardScreen(name='dashboard'))
         sm.add_widget(AddBillScreen(name='add_bill'))
         sm.add_widget(SettingsScreen(name='settings'))
         
-        # Check if user is logged in
         if self.api.token:
             sm.current = 'dashboard'
         else:

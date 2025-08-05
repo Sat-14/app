@@ -4,6 +4,8 @@
 #:import colors kivy.utils.get_color_from_hex
 #:import ButtonBehavior kivy.uix.behaviors.button.ButtonBehavior
 #:import FloatLayout kivy.uix.floatlayout.FloatLayout
+#:import Animation kivy.animation.Animation
+#:import AsyncImage kivy.uix.image.AsyncImage
 
 <ScreenManager>:
     transition: FadeTransition(duration=0.2)
@@ -20,7 +22,78 @@
     gray: colors('#6c757d')
     light_gray: colors('#e9ecef')
 
-# Custom widgets
+# --- Styles for the Glassy UI ---
+# --- Replace the old Glassy styles with these new ones ---
+
+<GlassyCard@BoxLayout>:
+    orientation: 'vertical'
+    padding: dp(25)
+    spacing: dp(20)
+    canvas.before:
+        Color:
+            # Dark, semi-transparent glass for a premium feel
+            rgba: 0.1, 0.1, 0.1, 0.6
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(20),]
+        Color:
+            # Prominent "dark white" border
+            rgba: 1, 1, 1, 0.4
+        Line:
+            width: 1.5
+            rounded_rectangle: (self.x, self.y, self.width, self.height, dp(20))
+
+<GlassyTextInput@TextInput>:
+    multiline: False
+    padding: dp(15), (self.height - self.font_size) / 2
+    background_color: 0, 0, 0, 0
+    # FIX: Ensures typed text is solid white and bold
+    foreground_color: 1, 1, 1, 1
+    bold: True
+    hint_text_color: 1, 1, 1, 0.5
+    cursor_color: 1, 1, 1, 1
+    cursor_width: dp(2)
+    size_hint_y: None
+    height: dp(55)
+    font_size: sp(16)
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 0.2
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(10),]
+        Color:
+            # Make border glow when focused
+            rgba: (1, 1, 1, 0.6) if self.focus else (1, 1, 1, 0.2)
+        Line:
+            width: 1.5 if self.focus else 1.2
+            rounded_rectangle: (self.x, self.y, self.width, self.height, dp(10))
+
+<GlassyButton>:
+    background_color: 0, 0, 0, 0
+    background_normal: ''
+    background_down: ''
+    # New gold/orange gradient for the button
+    _gradient_color_1: (0.9, 0.6, 0.2, 0.8)
+    _gradient_color_2: (1, 0.7, 0.3, 0.7)
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(10),]
+            texture:
+                root._create_gradient(root._gradient_color_1, root._gradient_color_2)
+
+
+
+
+
+# --- Original Custom Widgets ---
+
 <RoundedButton@Button>:
     background_color: 0, 0, 0, 0
     background_normal: ''
@@ -38,7 +111,6 @@
             rounded_rectangle: self.x, self.y, self.width, self.height, dp(10)
             width: 1.5
 
-# FIX: Re-adding the properties that were missing
 <IconButton@Button>:
     size_hint: None, None
     size: dp(40), dp(40)
@@ -89,6 +161,8 @@
         Line:
             width: 0.8
             rounded_rectangle: (self.x, self.y, self.width, self.height, dp(12))
+
+# --- Screen Definitions ---
 
 # Bill Item Widget
 <BillItem>:
@@ -205,74 +279,94 @@
                 text_color: colors('#e63946')
                 on_release: root.delete_bill()
 
-# Login Screen
+# Login Screen (Glassy UI Version)
 <LoginScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        padding: dp(30)
-        spacing: dp(30)
-        canvas.before:
-            Color:
-                rgba: colors('#f8f9fa')
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        
-        Label:
-            text: 'Welcome Back'
-            font_size: sp(28)
-            bold: True
-            color: colors('#212529')
-            size_hint_y: None
-            height: dp(40)
-            text_size: self.width, None
-            halign: 'center'
-        
-        CardLayout:
-            orientation: 'vertical'
-            spacing: dp(15)
-            
-            CustomTextInput:
-                id: email_input
-                hint_text: 'Email address'
-                input_type: 'mail'
-            
-            CustomTextInput:
-                id: password_input
-                hint_text: 'Password'
-                password: True
-            
-            RoundedButton:
-                text: 'Login'
-                size_hint_y: None
-                height: dp(50)
-                background_color: colors('#4361ee')
-                color: colors('#ffffff')
-                bold: True
-                font_size: sp(16)
-                on_release: app.login(email_input.text, password_input.text)
-        
+    RelativeLayout:
+        # 1. New high-quality luxury background
+        AsyncImage:
+            source: 'https://images.unsplash.com/photo-1604079628040-94301bb21b91?w=800'
+            fit_mode: 'cover'
+
+        # 2. Dark overlay for contrast and readability
         BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: dp(40)
-            padding: dp(10), 0
-            spacing: dp(5)
-            
+            canvas.before:
+                Color:
+                    rgba: 0, 0, 0, 0.4
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+        # 3. Main container for all UI elements
+        BoxLayout:
+            orientation: 'vertical'
+            padding: dp(30)
+            spacing: dp(20)
+
+            Widget: # Top spacer
+
             Label:
-                text: "Don't have an account?"
-                color: colors('#6c757d')
-                font_size: sp(14)
-            
-            Button:
-                text: "Sign Up"
-                background_color: 0, 0, 0, 0
-                color: colors('#4361ee')
+                text: "Welcome Back"
+                font_size: sp(34)
                 bold: True
-                font_size: sp(14)
-                size_hint_x: None
-                width: self.texture_size[0]
-                on_release: root.manager.current = 'register'
+                color: 1, 1, 1, 1 # Solid white text
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: 'center'
+
+            Widget: # Spacer
+                size_hint_y: 0.2
+
+            GlassyCard:
+                size_hint_y: None
+                height: self.minimum_height
+                padding: dp(20), dp(25)
+
+                GlassyTextInput:
+                    id: email_input
+                    hint_text: 'Email'
+
+                GlassyTextInput:
+                    id: password_input
+                    hint_text: 'Password'
+                    password: True
+
+                GlassyButton:
+                    text: 'Login'
+                    size_hint_y: None
+                    height: dp(50)
+                    bold: True
+                    font_size: sp(16)
+                    color: 1, 1, 1, 1 # Solid white text
+                    on_release: app.login(email_input.text, password_input.text)
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(40)
+                spacing: dp(5)
+                padding: [self.width / 2 - (dont_have_account.width + sign_up_button.width) / 2, 0, 0, 0]
+
+                Label:
+                    id: dont_have_account
+                    text: "Don't have an account?"
+                    color: 1, 1, 1, 0.7 # Slightly transparent white
+                    font_size: sp(14)
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                
+                Button:
+                    id: sign_up_button
+                    text: "Sign Up"
+                    background_color: 0, 0, 0, 0
+                    color: 1, 1, 1, 1 # Solid white text
+                    bold: True
+                    font_size: sp(14)
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                    on_release: root.manager.current = 'register'
+
+            Widget: # Bottom spacer
+
 
 # Register Screen
 <RegisterScreen>:
@@ -413,7 +507,6 @@
                     size_hint_y: None
                     height: self.minimum_height
         
-        # This is the updated navigation bar code.
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
