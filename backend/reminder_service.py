@@ -44,9 +44,18 @@ def generate_reminder_message(name, bill_data):
             f"is due on {bill_data.get('due_date')}. Amount due: ₹{bill_data.get('amount')}."
         )
 
+
+#................added by me (satvik kesarwani)................
 def send_whatsapp_reminder(phone_number, message_body):
     """Send WhatsApp reminder using Twilio"""
     try:
+        # --- NEW DEBUG CODE ---
+        print("--- DEBUG: CHECKING TWILIO KEYS ---")
+        print(f"Account SID from Config: {Config.TWILIO_ACCOUNT_SID}")
+        print(f"Auth Token from Config: {Config.TWILIO_AUTH_TOKEN}")
+        print("-----------------------------------")
+        # --- END OF NEW DEBUG CODE ---
+
         client = Client(Config.TWILIO_ACCOUNT_SID, Config.TWILIO_AUTH_TOKEN)
         message = client.messages.create(
             body=message_body,
@@ -56,6 +65,11 @@ def send_whatsapp_reminder(phone_number, message_body):
         return {"success": True, "sid": message.sid}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+    
+#................added by me (satvik kesarwani)................
+
 
 def send_voice_reminder(phone_number, message_body):
     """Send voice reminder using Bland AI"""

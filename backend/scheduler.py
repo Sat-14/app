@@ -1,3 +1,5 @@
+# scheduler.py
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from models import db, Bill, User, ReminderSettings
@@ -20,38 +22,45 @@ def start_scheduler(app):
         # This function can now use the 'app' variable from the outer scope
         with app.app_context():
             print("Scheduler: Checking for due bills...")
+            
+            # This loop runs every minute
+            current_time = datetime.now().strftime('%H:%M')
+            
             users = User.query.filter(User.phone_number.isnot(None)).all()
             
             for user in users:
                 settings = ReminderSettings.query.filter_by(user_id=user.id).first()
                 if not settings:
                     continue
-                
-                current_time = datetime.now().strftime('%H:%M')
-                if current_time != settings.preferred_time:
-                    continue
-                
-                reminder_date = datetime.now() + timedelta(days=settings.days_before)
-                bills_due = Bill.query.filter(
-                    Bill.user_id == user.id,
-                    Bill.is_paid == False,
-                    Bill.due_date <= reminder_date,
-                    Bill.due_date >= datetime.now()
-                ).all()
-                
-                for bill in bills_due:
-                    bill_data = {
-                        'name': bill.name,
-                        'amount': bill.amount,
-                        'due_date': bill.due_date.strftime('%Y-%m-%d')
-                    }
-                    message = generate_reminder_message(user.name, bill_data)
+
+                # The key change is here: The reminder logic is now executed ONLY
+                # at the exact minute of the user's preferred time.
+                if current_time == settings.preferred_time:
                     
-                    if settings.whatsapp_enabled and bill.enable_whatsapp:
-                        send_whatsapp_reminder(user.phone_number, message)
+                    bills_due = Bill.query.filter(
+                        Bill.user_id == user.id,
+                        Bill.is_paid == False
+                    ).all()
                     
-                    if settings.call_enabled and bill.enable_call:
-                        send_voice_reminder(user.phone_number, message)
+                    for bill in bills_due:
+                        # Calculate days left using only the date portion
+                        days_left = (bill.due_date.date() - datetime.now().date()).days
+                        
+                        # Check if the number of days left is in our reminder list
+                        # This will trigger a message on the 3rd, 2nd, 1st, and 0th day before the deadline.
+                        if days_left in [3, 2, 1, 0]:
+                            bill_data = {
+                                'name': bill.name,
+                                'amount': bill.amount,
+                                'due_date': bill.due_date.strftime('%Y-%m-%d')
+                            }
+                            message = generate_reminder_message(user.name, bill_data)
+                            
+                            if settings.whatsapp_enabled and bill.enable_whatsapp:
+                                send_whatsapp_reminder(user.phone_number, message)
+                            
+                            if settings.call_enabled and bill.enable_call:
+                                send_voice_reminder(user.phone_number, message)
 
     def check_overdue_bills():
         """This job runs daily to check for overdue bills."""

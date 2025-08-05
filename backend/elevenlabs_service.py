@@ -1,27 +1,23 @@
 import os
-from elevenlabs.client import ElevenLabs
-from elevenlabs import save, Voice, VoiceSettings
 import tempfile
-# Assuming you have a .env file or environment variables set for your keys
+from elevenlabs import generate, Voice, VoiceSettings, save, set_api_key, voices
 from dotenv import load_dotenv
 
 # Load environment variables from a .env file
 load_dotenv()
 
-# Create a single, reusable client instance
-client = ElevenLabs(
-  api_key=os.getenv("ELEVENLABS_API_KEY"), 
-)
+# Set your ElevenLabs API key
+set_api_key(os.getenv("ELEVENLABS_API_KEY"))
 
 def generate_voice_audio(text: str, voice_id: str = None):
-    """Generate voice audio using the new ElevenLabs client."""
+    """Generate voice audio using ElevenLabs API."""
     try:
-        # Use the default voice ID from environment variables if none is provided
+        # Use default voice ID if none is provided
         if not voice_id:
-            voice_id = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM") # Default if not set
+            voice_id = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
-        # Generate audio using the client instance
-        audio = client.generate(
+        # Generate audio
+        audio = generate(
             text=text,
             voice=Voice(
                 voice_id=voice_id,
@@ -34,7 +30,7 @@ def generate_voice_audio(text: str, voice_id: str = None):
             )
         )
 
-        # Save audio to a temporary file
+        # Save to temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as tmp_file:
             save(audio, tmp_file.name)
             return {"success": True, "audio_path": tmp_file.name}
@@ -44,10 +40,9 @@ def generate_voice_audio(text: str, voice_id: str = None):
         return {"success": False, "error": str(e)}
 
 def get_available_voices():
-    """Get list of available voices using the new ElevenLabs client."""
+    """Get list of available voices from ElevenLabs."""
     try:
-        # Get voices using the client instance
-        available_voices = client.voices.get_all()
+        available_voices = voices()  # this returns a list of Voice objects
 
         voice_list = [
             {
@@ -55,11 +50,10 @@ def get_available_voices():
                 "name": voice.name,
                 "category": voice.category,
             }
-            for voice in available_voices.voices
+            for voice in available_voices
         ]
 
         return {"success": True, "voices": voice_list}
     except Exception as e:
         print(f"Error getting ElevenLabs voices: {e}")
         return {"success": False, "error": str(e)}
-    
