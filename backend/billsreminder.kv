@@ -1,4 +1,5 @@
 # billsreminder.kv
+
 #:import dp kivy.metrics.dp
 #:import FadeTransition kivy.uix.screenmanager.FadeTransition
 #:import colors kivy.utils.get_color_from_hex
@@ -6,6 +7,10 @@
 #:import FloatLayout kivy.uix.floatlayout.FloatLayout
 #:import Animation kivy.animation.Animation
 #:import AsyncImage kivy.uix.image.AsyncImage
+#:import Switch kivy.uix.switch.Switch
+#:import Spinner kivy.uix.spinner.Spinner
+
+
 
 <ScreenManager>:
     transition: FadeTransition(duration=0.2)
@@ -23,34 +28,32 @@
     light_gray: colors('#e9ecef')
 
 # --- Styles for the Glassy UI ---
-# --- Replace the old Glassy styles with these new ones ---
 
-<GlassyCard@BoxLayout>:
+<GlassyCard>:
     orientation: 'vertical'
     padding: dp(25)
     spacing: dp(20)
     canvas.before:
         Color:
-            # Dark, semi-transparent glass for a premium feel
-            rgba: 0.1, 0.1, 0.1, 0.6
+            rgba: 0.1, 0.1, 0.1, 0.6 # Dark, semi-transparent glass for a premium feel
         RoundedRectangle:
             pos: self.pos
             size: self.size
             radius: [dp(20),]
         Color:
-            # Prominent "dark white" border
-            rgba: 1, 1, 1, 0.4
+            rgba: 1, 1, 1, 0.4 # Prominent "dark white" border
         Line:
             width: 1.5
             rounded_rectangle: (self.x, self.y, self.width, self.height, dp(20))
 
-<GlassyTextInput@TextInput>:
+<GlassyTextInput>:
     multiline: False
     padding: dp(15), (self.height - self.font_size) / 2
     background_color: 0, 0, 0, 0
-    # FIX: Ensures typed text is solid white and bold
-    foreground_color: 1, 1, 1, 1
-    bold: True
+    # Change the foreground_color to solid white
+    foreground_color: 1, 1, 1, 1 
+    # Add the bold property and set it to True
+    bold: True 
     hint_text_color: 1, 1, 1, 0.5
     cursor_color: 1, 1, 1, 1
     cursor_width: dp(2)
@@ -65,7 +68,6 @@
             size: self.size
             radius: [dp(10),]
         Color:
-            # Make border glow when focused
             rgba: (1, 1, 1, 0.6) if self.focus else (1, 1, 1, 0.2)
         Line:
             width: 1.5 if self.focus else 1.2
@@ -75,26 +77,37 @@
     background_color: 0, 0, 0, 0
     background_normal: ''
     background_down: ''
-    # New gold/orange gradient for the button
-    _gradient_color_1: (0.9, 0.6, 0.2, 0.8)
-    _gradient_color_2: (1, 0.7, 0.3, 0.7)
+    # Define the colors the button will use
+    _color_normal: colors('#4361ee')  # Primary blue
+    _color_down: colors('#3a0ca3')   # Darker secondary blue
+    
     canvas.before:
         Color:
-            rgba: 1, 1, 1, 1
+            rgba: self._color_down if self.state == 'down' else self._color_normal
         RoundedRectangle:
             pos: self.pos
             size: self.size
-            radius: [dp(10),]
-            texture:
-                root._create_gradient(root._gradient_color_1, root._gradient_color_2)
+            radius: [self.height / 2,] # Dynamically half the height
+
+
+    # Animate the button's scale on press and release
+    on_press:
+        Animation(scale=0.95, duration=0.08).start(self)
+    on_release:
+        Animation(scale=1.0, duration=0.08).start(self)
+    
+    # Use the scale property for the animation
+    scale_x: self.scale
+    scale_y: self.scale
+    size_hint: (None, None)
+    size: self.texture_size[0] + dp(40), self.texture_size[1] + dp(20) # Dynamic size
+    pos_hint: {'center_x': 0.5}
 
 
 
+# --- Original Custom Widgets (Adjusted for Glassy Background) ---
 
-
-# --- Original Custom Widgets ---
-
-<RoundedButton@Button>:
+<RoundedButton>:
     background_color: 0, 0, 0, 0
     background_normal: ''
     background_down: ''
@@ -111,7 +124,7 @@
             rounded_rectangle: self.x, self.y, self.width, self.height, dp(10)
             width: 1.5
 
-<IconButton@Button>:
+<IconButton>:
     size_hint: None, None
     size: dp(40), dp(40)
     background_color: 0, 0, 0, 0
@@ -125,25 +138,26 @@
             pos: self.pos
             size: self.size
             radius: [dp(20),]
-    
-<CustomTextInput@TextInput>:
+            
+<CustomTextInput>: # Keeping this for AddBillScreen/SettingsScreen, but adjusting colors for dark background
     multiline: False
     padding: dp(15), dp(15)
-    background_color: colors('#ffffff')
-    foreground_color: colors('#212529')
-    cursor_color: colors('#4361ee')
+    background_color: 0, 0, 0, 0.2 # Semi-transparent background
+    foreground_color: 1, 1, 1, 1 # White text
+    hint_text_color: 1, 1, 1, 0.5 # Light hint text
+    cursor_color: 1, 1, 1, 1
     cursor_width: dp(2)
     size_hint_y: None
     height: dp(55)
     font_size: sp(16)
     canvas.before:
         Color:
-            rgba: colors('#dee2e6')
+            rgba: 1, 1, 1, 0.2 # Light border
         Line:
             width: 1.2
             rounded_rectangle: (self.x, self.y, self.width, self.height, dp(8))
 
-<CardLayout@BoxLayout>:
+<CardLayout>: # Adjusting for glassy background
     orientation: 'vertical'
     padding: dp(15)
     spacing: dp(10)
@@ -151,20 +165,20 @@
     height: self.minimum_height
     canvas.before:
         Color:
-            rgba: colors('#ffffff')
+            rgba: 0.1, 0.1, 0.1, 0.6 # Dark, semi-transparent background
         RoundedRectangle:
             pos: self.pos
             size: self.size
             radius: [dp(12),]
         Color:
-            rgba: colors('#e9ecef')
+            rgba: 1, 1, 1, 0.4 # Light border
         Line:
             width: 0.8
             rounded_rectangle: (self.x, self.y, self.width, self.height, dp(12))
 
 # --- Screen Definitions ---
 
-# Bill Item Widget
+# Bill Item Widget (No major changes needed, it's a card-like item)
 <BillItem>:
     orientation: 'horizontal'
     size_hint_y: None
@@ -173,7 +187,7 @@
     spacing: dp(15)
     canvas.before:
         Color:
-            rgba: colors('#ffffff')
+            rgba: colors('#ffffff') # Still a white background for individual bill items
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -198,7 +212,7 @@
             halign: 'left'
             valign: 'middle'
             height: dp(25)
-            color: colors('#212529')
+            color: colors('#212529') # Keep dark for contrast on white BillItem
         
         BoxLayout:
             orientation: 'horizontal'
@@ -233,7 +247,7 @@
             text_size: self.width, None
             halign: 'left'
             valign: 'middle'
-            color: colors('#6c757d')
+            color: colors('#6c757d') # Keep dark for contrast on white BillItem
     
     BoxLayout:
         orientation: 'vertical'
@@ -245,7 +259,7 @@
             text: 'PENDING'
             font_size: sp(12)
             bold: True
-            color: colors('#e63946')
+            color: colors('#e63946') # Keep dark for contrast on white BillItem
             text_size: self.width, None
             halign: 'center'
             valign: 'middle'
@@ -279,15 +293,134 @@
                 text_color: colors('#e63946')
                 on_release: root.delete_bill()
 
-# Login Screen (Glassy UI Version)
+# Login Screen (Glassy UI Version) - Already has glassy background
 <LoginScreen>:
     RelativeLayout:
-        # 1. New high-quality luxury background
         AsyncImage:
             source: 'https://images.unsplash.com/photo-1604079628040-94301bb21b91?w=800'
             fit_mode: 'cover'
 
-        # 2. Dark overlay for contrast and readability
+        BoxLayout:
+            canvas.before:
+                Color:
+                    rgba: 0, 0, 0, 0.4
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                
+
+        Widget:
+            size_hint_y:0.2       
+
+        BoxLayout:
+            orientation: 'vertical'
+            padding: dp(30)
+            spacing: dp(20)
+
+            Widget:
+            
+            BoxLayout:
+                size_hint: None, None
+                size: dp(100), dp(100)
+                pos_hint: {'center_x': 0.5}
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    RoundedRectangle:
+                        source: "login_logo.png"
+                        pos: self.pos
+                        size: self.size
+                        radius: [self.width / 2,] # This makes it a circle
+
+
+            Widget:
+                size_hint_y:0.1
+
+            Label:
+                text: "Welcome, SmartPayer"
+                font_size: sp(28)
+                bold: True
+                color: 1, 1, 1, 1
+                size_hint_y: 
+                height: self.texture_size[1]
+                halign: 'center'
+
+            
+
+            GlassyCard:
+                size_hint_y: None
+                height: self.minimum_height
+                padding: dp(20), dp(25)
+                valign: 'center'
+
+                Widget:
+                    size_hint_y:0.1
+
+                GlassyTextInput:
+                    id: email_input
+                    hint_text: 'Email'
+                    color: 1, 1, 1, 1
+
+                GlassyTextInput:
+                    id: password_input
+                    hint_text: 'Password'
+                    password: True
+                    color: 1, 1, 1, 1
+
+
+                GlassyButton:
+                    text: 'Login'
+                    size_hint: None, None
+                    size: dp(600), dp(100) # Set a fixed width and height
+                    pos_hint: {'center_x': 0.5}
+                    bold: True
+                    font_size: sp(16)
+                    color: 1, 1, 1, 1
+                    on_release: app.login(email_input.text, password_input.text)
+                    
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(40)
+                spacing: dp(5)
+                Widget:
+                    #size_hint_x: 0.
+
+                Label:
+                    id: dont_have_account
+                    text: "Don't have an account?"
+                    color: 1, 1, 1, 0.7
+                    font_size: sp(14)
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                    valign: 'middle'
+                
+                Button:
+                    id: sign_up_button
+                    text: "Sign Up"
+                    background_color: 0, 0, 0, 0
+                    color: 1, 1, 1, 1
+                    bold: True
+                    font_size: sp(14)
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                    valign: 'middle'
+                    on_release: root.manager.current = 'register'
+
+                Widget:
+                    #size_hint_x: 0.5
+
+            Widget:
+
+
+# Register Screen (Glassy UI Version) - Already has glassy background
+<RegisterScreen>:
+    name: 'register'
+    RelativeLayout:
+        AsyncImage:
+            source: 'https://images.unsplash.com/photo-1604079628040-94301bb21b91?w=800'
+            fit_mode: 'cover'
+
         BoxLayout:
             canvas.before:
                 Color:
@@ -296,279 +429,276 @@
                     pos: self.pos
                     size: self.size
 
-        # 3. Main container for all UI elements
+        # Main vertical layout
         BoxLayout:
             orientation: 'vertical'
-            padding: dp(30)
-            spacing: dp(20)
+            padding: dp(20)
+            spacing: dp(15)
 
-            Widget: # Top spacer
-
-            Label:
-                text: "Welcome Back"
-                font_size: sp(34)
-                bold: True
-                color: 1, 1, 1, 1 # Solid white text
-                size_hint_y: None
-                height: self.texture_size[1]
-                halign: 'center'
-
-            Widget: # Spacer
-                size_hint_y: 0.2
-
-            GlassyCard:
-                size_hint_y: None
-                height: self.minimum_height
-                padding: dp(20), dp(25)
-
-                GlassyTextInput:
-                    id: email_input
-                    hint_text: 'Email'
-
-                GlassyTextInput:
-                    id: password_input
-                    hint_text: 'Password'
-                    password: True
-
-                GlassyButton:
-                    text: 'Login'
-                    size_hint_y: None
-                    height: dp(50)
-                    bold: True
-                    font_size: sp(16)
-                    color: 1, 1, 1, 1 # Solid white text
-                    on_release: app.login(email_input.text, password_input.text)
-
+            # Back button and icon header
             BoxLayout:
                 orientation: 'horizontal'
                 size_hint_y: None
                 height: dp(40)
-                spacing: dp(5)
-                padding: [self.width / 2 - (dont_have_account.width + sign_up_button.width) / 2, 0, 0, 0]
 
-                Label:
-                    id: dont_have_account
-                    text: "Don't have an account?"
-                    color: 1, 1, 1, 0.7 # Slightly transparent white
-                    font_size: sp(14)
-                    size_hint_x: None
-                    width: self.texture_size[0]
-                
-                Button:
-                    id: sign_up_button
-                    text: "Sign Up"
-                    background_color: 0, 0, 0, 0
-                    color: 1, 1, 1, 1 # Solid white text
-                    bold: True
-                    font_size: sp(14)
-                    size_hint_x: None
-                    width: self.texture_size[0]
-                    on_release: root.manager.current = 'register'
+                IconButton:
+                    bg_color: [0, 0, 0, 0] # Make the button's background transparent
+                    size_hint: None, None
+                    size: dp(30), dp(30)
+                    pos_hint: {'left': 1, 'center_y': 0.5}
+                    on_release: root.manager.current = 'login'
+                    canvas.before:
+                        # Draw the light gray circle background first
+                        Color:
+                            rgba: colors('#e9ecef') 
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [self.width/2,]
+                        # Now draw the image on top
+                        Color:
+                            rgba: colors('#4361ee')
+                        Rectangle:
+                            source: 'back.png'
+                            size: dp(15), dp(15)
+                            pos: self.x + self.width/2 - dp(7.5), self.y + self.height/2 - dp(7.5)
 
-            Widget: # Bottom spacer
 
-
-# Register Screen
-<RegisterScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        padding: dp(20)
-        spacing: dp(20)
-        canvas.before:
-            Color:
-                rgba: colors('#f8f9fa')
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: dp(50)
+                Widget:
+                    size_hint_x: 0.8
             
-            IconButton:
-                text: '←'
-                bg_color: colors('#e9ecef')
-                text_color: colors('#4361ee')
-                font_size: sp(20)
-                on_release: root.manager.current = 'login'
+            # Spacer
+            Widget:
+                size_hint_y: None
+                height: dp(5)
             
-            Label:
-                text: 'Create Account'
-                font_size: sp(22)
-                bold: True
-                color: colors('#212529')
-                size_hint_x: 0.8
-                text_size: self.width, None
-                halign: 'center'
-        
-        ScrollView:
+            # Main content container for the title and form
             BoxLayout:
                 orientation: 'vertical'
-                spacing: dp(20)
                 size_hint_y: None
                 height: self.minimum_height
-                padding: dp(10)
-                
-                CardLayout:
+                spacing: dp(15)
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: dp(40)
+                    
+                    Label:
+                        text: 'Create Your Smart Account'
+                        font_size: sp(22)
+                        bold: True
+                        color: 1, 1, 1, 1
+                        text_size: self.width, None
+                        halign: 'center'
+                        valign: 'middle'
+
+                GlassyCard:
                     orientation: 'vertical'
                     spacing: dp(15)
-                    
-                    CustomTextInput:
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    GlassyTextInput:
                         id: name_input
                         hint_text: 'Full Name'
-                    
-                    CustomTextInput:
+
+                    GlassyTextInput:
                         id: email_input
                         hint_text: 'Email'
                         input_type: 'mail'
-                    
-                    CustomTextInput:
+
+                    GlassyTextInput:
                         id: phone_input
                         hint_text: 'Phone Number'
                         input_type: 'number'
-                    
-                    CustomTextInput:
+
+                    GlassyTextInput:
                         id: password_input
                         hint_text: 'Password'
                         password: True
-                
-                RoundedButton:
-                    text: 'Register'
-                    size_hint_y: None
-                    height: dp(50)
-                    background_color: colors('#4361ee')
-                    color: colors('#ffffff')
-                    bold: True
-                    font_size: sp(16)
-                    on_release: app.register(email_input.text, password_input.text, name_input.text, phone_input.text)
+                    
+                    Widget:
+                        size_hint_y: None
+                        height: dp(25)
+                    
+                    GlassyButton:
+                        text: 'Register'
+                        size_hint_y: None
+                        height: dp(45)
+                        bold: True
+                        font_size: sp(16)
+                        color: 1, 1, 1, 1
+                        on_release: app.register(email_input.text, password_input.text, name_input.text, phone_input.text)
+            
+            # Flexible spacer at the bottom
+            Widget:
+                size_hint_y: 1
 
-# Dashboard Screen
+# Dashboard Screen - NOW WITH GLASSY BACKGROUND
 <DashboardScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        canvas.before:
-            Color:
-                rgba: colors('#f8f9fa')
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: dp(70)
-            padding: dp(15), dp(10)
+    RelativeLayout: # Main container for background image and overlay
+        AsyncImage:
+            source: 'https://images.unsplash.com/photo-1604079628040-94301bb21b91?w=800' # Same background image
+            fit_mode: 'cover'
+
+        BoxLayout: # Dark overlay for contrast
             canvas.before:
                 Color:
-                    rgba: colors('#ffffff')
+                    rgba: 0, 0, 0, 0.4
                 Rectangle:
                     pos: self.pos
                     size: self.size
-            
-            Label:
-                text: 'My Bills'
-                font_size: sp(22)
-                bold: True
-                color: colors('#212529')
-                text_size: self.width, None
-                halign: 'left'
-            
-            IconButton:
-                text: '+'
-                bg_color: colors('#4361ee')
-                text_color: colors('#ffffff')
-                font_size: sp(24)
-                on_release: 
-                    root.manager.get_screen('add_bill').clear_form()
-                    root.manager.current = 'add_bill'
-        
+
+        # Main content of the DashboardScreen
         BoxLayout:
             orientation: 'vertical'
-            padding: dp(10)
+            padding: dp(15)
             spacing: dp(10)
-            
-            Label:
-                text: 'UPCOMING PAYMENTS'
-                font_size: sp(12)
-                color: colors('#6c757d')
-                size_hint_y: None
-                height: dp(30)
-                text_size: self.width, None
-                halign: 'left'
-                padding: dp(10), 0
-            
-            ScrollView:
-                BoxLayout:
-                    id: bills_list
-                    orientation: 'vertical'
-                    spacing: dp(15)
-                    padding: dp(5)
-                    size_hint_y: None
-                    height: self.minimum_height
-        
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: dp(70)
-            padding: dp(5)
-            spacing: dp(5)
-            canvas.before:
-                Color:
-                    rgba: colors('#ffffff')
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-            
-            Button:
-                id: btn_home
-                text: 'Home'
-                background_color: 0, 0, 0, 0
-                color: colors('#6c757d')
-                on_release: 
-                    root.manager.current = 'dashboard'
-                    root.update_nav_buttons()
-            
-            Button:
-                id: btn_add
-                text: 'Add'
-                background_color: 0, 0, 0, 0
-                color: colors('#6c757d')
-                on_release: 
-                    root.manager.get_screen('add_bill').clear_form()
-                    root.manager.current = 'add_bill'
-            
-            Button:
-                id: btn_settings
-                text: 'Settings'
-                background_color: 0, 0, 0, 0
-                color: colors('#6c757d')
-                on_release: 
-                    root.manager.current = 'settings'
-                    root.update_nav_buttons()
 
-# Add/Edit Bill Screen
+            BoxLayout: # Header
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(70)
+                padding: dp(15), dp(10)
+                canvas.before:
+                    Color:
+                        rgba: 0.1, 0.1, 0.1, 0.6 # Semi-transparent header bar
+                    RoundedRectangle: # Rounded corners for the header
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(12),] # Apply rounded corners
+                    Color:
+                        rgba: 1, 1, 1, 0.4 # Light border for the header
+                    Line:
+                        width: 1.5
+                        rounded_rectangle: (self.x, self.y, self.width, self.height, dp(12))
+                
+                Label:
+                    text: 'My Bills'
+                    font_size: sp(22)
+                    bold: True
+                    color: 1, 1, 1, 1 # White text for the title
+                    text_size: self.width, None
+                    halign: 'left'
+                
+                IconButton:
+                    text: '+'
+                    bg_color: colors('#4361ee')
+                    text_color: colors('#ffffff')
+                    font_size: sp(24)
+                    on_release: 
+                        root.manager.get_screen('add_bill').clear_form()
+                        root.manager.current = 'add_bill'
+            
+            BoxLayout: # Upcoming Payments section
+                orientation: 'vertical'
+                padding: dp(10)
+                spacing: dp(10)
+                
+                Label:
+                    text: 'UPCOMING PAYMENTS'
+                    font_size: sp(12)
+                    color: 1, 1, 1, 0.7 # Lighter gray for text on dark background
+                    size_hint_y: None
+                    height: dp(30)
+                    text_size: self.width, None
+                    halign: 'left'
+                    padding: dp(10), 0
+                
+                ScrollView:
+                    BoxLayout:
+                        id: bills_list
+                        orientation: 'vertical'
+                        spacing: dp(15)
+                        padding: dp(5)
+                        size_hint_y: None
+                        height: self.minimum_height
+            
+            BoxLayout: # Navigation Bar
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(70)
+                padding: dp(5)
+                spacing: dp(5)
+                canvas.before:
+                    Color:
+                        rgba: 0.1, 0.1, 0.1, 0.6 # Semi-transparent navigation bar
+                    RoundedRectangle: # Rounded corners for the nav bar
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(12),] # Apply rounded corners
+                    Color:
+                        rgba: 1, 1, 1, 0.4 # Light border for the nav bar
+                    Line:
+                        width: 1.5
+                        rounded_rectangle: (self.x, self.y, self.width, self.height, dp(12))
+                
+                Button:
+                    id: btn_home
+                    text: 'Home'
+                    background_color: 0, 0, 0, 0
+                    color: 1, 1, 1, 1 # White text for nav buttons
+                    on_release: 
+                        root.manager.current = 'dashboard'
+                        root.update_nav_buttons()
+                
+                Button:
+                    id: btn_add
+                    text: 'Add'
+                    background_color: 0, 0, 0, 0
+                    color: 1, 1, 1, 1 # White text for nav buttons
+                    on_release: 
+                        root.manager.get_screen('add_bill').clear_form()
+                        root.manager.current = 'add_bill'
+                
+                Button:
+                    id: btn_settings
+                    text: 'Settings'
+                    background_color: 0, 0, 0, 0
+                    color: 1, 1, 1, 1 # White text for nav buttons
+                    on_release: 
+                        root.manager.current = 'settings'
+                        root.update_nav_buttons()
+
+# Add/Edit Bill Screen - NOW WITH GLASSY BACKGROUND
 <AddBillScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        canvas.before:
-            Color:
-                rgba: colors('#f8f9fa')
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: dp(70)
-            padding: dp(15), dp(10)
+    RelativeLayout: # Main container for background image and overlay
+        AsyncImage:
+            source: 'https://images.unsplash.com/photo-1604079628040-94301bb21b91?w=800' # Same background image
+            fit_mode: 'cover'
+
+        BoxLayout: # Dark overlay for contrast
             canvas.before:
                 Color:
-                    rgba: colors('#ffffff')
+                    rgba: 0, 0, 0, 0.4
                 Rectangle:
                     pos: self.pos
                     size: self.size
+
+        # Main content of the AddBillScreen
+        BoxLayout:
+            orientation: 'vertical'
+            padding: dp(20) # Adjusted padding
+            spacing: dp(20)
+        
+            BoxLayout: # Header
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(70)
+                padding: dp(15), dp(10)
+                canvas.before:
+                    Color:
+                        rgba: 0.1, 0.1, 0.1, 0.6 # Semi-transparent header bar
+                    RoundedRectangle: # Rounded corners for the header
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(12),] # Apply rounded corners
+                    Color:
+                        rgba: 1, 1, 1, 0.4 # Light border for the header
+                    Line:
+                        width: 1.5
+                        rounded_rectangle: (self.x, self.y, self.width, self.height, dp(12))
             
             IconButton:
                 text: '←'
@@ -580,11 +710,14 @@
                 text: 'Edit Bill' if root.is_edit_mode else 'Add Bill'
                 font_size: sp(22)
                 bold: True
-                color: colors('#212529')
+                color: 1, 1, 1, 1 # White text for the title
                 size_hint_x: 0.8
                 text_size: self.width, None
                 halign: 'center'
         
+            
+                    
+        # Inside your <AddBillScreen> rule, find and replace the ScrollView
         ScrollView:
             BoxLayout:
                 orientation: 'vertical'
@@ -592,167 +725,182 @@
                 padding: dp(20)
                 size_hint_y: None
                 height: self.minimum_height
-                
-                CardLayout:
+
+                CardLayout: # Uses the updated CardLayout style (semi-transparent)
                     orientation: 'vertical'
                     spacing: dp(15)
-                    
+
                     Label:
                         text: 'Bill Information'
                         font_size: sp(16)
                         bold: True
-                        color: colors('#212529')
+                        color: 1, 1, 1, 1 # White text
                         size_hint_y: None
                         height: dp(30)
                         text_size: self.width, None
                         halign: 'left'
-                    
-                    CustomTextInput:
+
+                    GlassyTextInput: # Changed from CustomTextInput to GlassyTextInput for consistency
                         id: bill_name
                         hint_text: 'Bill Name'
-                    
-                    CustomTextInput:
+
+                    GlassyTextInput: # Changed from CustomTextInput to GlassyTextInput for consistency
                         id: bill_amount
                         hint_text: 'Amount'
                         input_type: 'number'
-                    
-                    CustomTextInput:
+
+                    GlassyTextInput: # Changed from CustomTextInput to GlassyTextInput for consistency
                         id: bill_due_date
                         hint_text: 'Due Date (YYYY-MM-DD)'
-                
-                CardLayout:
+
+                CardLayout: # Uses the updated CardLayout style (semi-transparent)
                     orientation: 'vertical'
                     spacing: dp(15)
-                    
+
                     Label:
                         text: 'Bill Details'
                         font_size: sp(16)
                         bold: True
-                        color: colors('#212529')
+                        color: 1, 1, 1, 1 # White text
                         size_hint_y: None
                         height: dp(30)
                         text_size: self.width, None
                         halign: 'left'
-                    
+
                     BoxLayout:
                         orientation: 'horizontal'
                         size_hint_y: None
                         height: dp(50)
                         spacing: dp(10)
-                        
+
                         Label:
                             text: 'Category:'
                             size_hint_x: 0.4
                             text_size: self.width, None
                             halign: 'left'
                             valign: 'center'
-                        
+                            color: 1, 1, 1, 1 # White text
+
                         Spinner:
                             id: bill_category
                             text: 'utilities'
                             values: ['utilities', 'rent', 'insurance', 'subscription', 'loan', 'credit_card', 'other']
-                            background_color: colors('#ffffff')
+                            background_color: 0.1, 0.1, 0.1, 0.6 # Semi-transparent background for spinner
                             background_normal: ''
-                            color: colors('#212529')
+                            color: 1, 1, 1, 1 # White text for spinner
                             size_hint_x: 0.6
-                    
+
                     BoxLayout:
                         orientation: 'horizontal'
                         size_hint_y: None
                         height: dp(50)
                         spacing: dp(10)
-                        
+
                         Label:
                             text: 'Frequency:'
                             size_hint_x: 0.4
                             text_size: self.width, None
                             halign: 'left'
                             valign: 'center'
-                        
+                            color: 1, 1, 1, 1 # White text
+
                         Spinner:
                             id: bill_frequency
                             text: 'monthly'
                             values: ['once', 'weekly', 'monthly', 'quarterly', 'yearly']
-                            background_color: colors('#ffffff')
+                            background_color: 0.1, 0.1, 0.1, 0.6 # Semi-transparent background for spinner
                             background_normal: ''
-                            color: colors('#212529')
+                            color: 1, 1, 1, 1 # White text for spinner
                             size_hint_x: 0.6
-                    
+
                     BoxLayout:
                         orientation: 'horizontal'
                         size_hint_y: None
                         height: dp(50)
                         spacing: dp(10)
-                        
+
                         Label:
                             text: 'Voice Call Reminder:'
                             size_hint_x: 0.7
                             text_size: self.width, None
                             halign: 'left'
                             valign: 'center'
-                        
+                            color: 1, 1, 1, 1 # White text
+
                         Switch:
                             id: enable_call_switch
                             size_hint_x: None
                             width: dp(60)
-                
-                CardLayout:
+
+                CardLayout: # Uses the updated CardLayout style (semi-transparent)
                     orientation: 'vertical'
                     spacing: dp(15)
-                    
+
                     Label:
                         text: 'Notes'
                         font_size: sp(16)
                         bold: True
-                        color: colors('#212529')
+                        color: 1, 1, 1, 1 # White text
                         size_hint_y: None
                         height: dp(30)
                         text_size: self.width, None
                         halign: 'left'
-                    
-                    TextInput:
+
+                    GlassyTextInput: # Changed from TextInput to GlassyTextInput for consistency
                         id: bill_notes
                         hint_text: 'Additional notes...'
                         multiline: True
                         size_hint_y: None
                         height: dp(100)
-                        padding: dp(10)
-                        background_color: colors('#ffffff')
-                        foreground_color: colors('#212529')
-                        cursor_color: colors('#4361ee')
-                
-                RoundedButton:
+                        # Padding and colors are now handled by GlassyTextInput style
+
+                GlassyButton: # Changed from RoundedButton to GlassyButton for consistency
                     text: 'UPDATE BILL' if root.is_edit_mode else 'SAVE BILL'
                     size_hint_y: None
                     height: dp(55)
-                    background_color: colors('#4361ee')
-                    color: colors('#ffffff')
+                    # Background color and text color are now handled by GlassyButton style
                     bold: True
                     font_size: sp(16)
                     on_release: root.save_bill()
 
-# Settings Screen
+# Settings Screen - NOW WITH GLASSY BACKGROUND
 <SettingsScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        canvas.before:
-            Color:
-                rgba: colors('#f8f9fa')
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: dp(70)
-            padding: dp(15), dp(10)
+    RelativeLayout: # Main container for background image and overlay
+        AsyncImage:
+            source: 'https://images.unsplash.com/photo-1604079628040-94301bb21b91?w=800' # Same background image
+            fit_mode: 'cover'
+
+        BoxLayout: # Dark overlay for contrast
             canvas.before:
                 Color:
-                    rgba: colors('#ffffff')
+                    rgba: 0, 0, 0, 0.4
                 Rectangle:
                     pos: self.pos
                     size: self.size
+
+        # Main content of the SettingsScreen
+        BoxLayout:
+            orientation: 'vertical'
+            padding: dp(20) # Adjusted padding
+            spacing: dp(20)
+        
+            BoxLayout: # Header
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(70)
+                padding: dp(15), dp(10)
+                canvas.before:
+                    Color:
+                        rgba: 0.1, 0.1, 0.1, 0.6 # Semi-transparent header bar
+                    RoundedRectangle: # Rounded corners for the header
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(12),] # Apply rounded corners
+                    Color:
+                        rgba: 1, 1, 1, 0.4 # Light border for the header
+                    Line:
+                        width: 1.5
+                        rounded_rectangle: (self.x, self.y, self.width, self.height, dp(12))
             
             IconButton:
                 text: '←'
@@ -764,218 +912,216 @@
                 text: 'Settings'
                 font_size: sp(22)
                 bold: True
-                color: colors('#212529')
+                color: 1, 1, 1, 1 # White text for the title
                 size_hint_x: 0.8
                 text_size: self.width, None
                 halign: 'center'
         
-        ScrollView:
-            BoxLayout:
-                orientation: 'vertical'
-                spacing: dp(20)
-                padding: dp(20)
-                size_hint_y: None
-                height: self.minimum_height
-                
-                CardLayout:
+            ScrollView:
+                BoxLayout:
                     orientation: 'vertical'
-                    spacing: dp(15)
-                    
-                    Label:
-                        text: 'Reminder Channels'
-                        font_size: sp(16)
-                        bold: True
-                        color: colors('#212529')
-                        size_hint_y: None
-                        height: dp(30)
-                        text_size: self.width, None
-                        halign: 'left'
-                    
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        size_hint_y: None
-                        height: dp(50)
-                        spacing: dp(10)
-                        
-                        Label:
-                            text: 'WhatsApp'
-                            size_hint_x: 0.8
-                            text_size: self.width, None
-                            halign: 'left'
-                            valign: 'center'
-                        
-                        Switch:
-                            id: whatsapp_switch
-                            size_hint_x: None
-                            width: dp(60)
-                    
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        size_hint_y: None
-                        height: dp(50)
-                        spacing: dp(10)
-                        
-                        Label:
-                            text: 'Voice Call'
-                            size_hint_x: 0.8
-                            text_size: self.width, None
-                            halign: 'left'
-                            valign: 'center'
-                        
-                        Switch:
-                            id: call_switch
-                            size_hint_x: None
-                            width: dp(60)
-                    
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        size_hint_y: None
-                        height: dp(50)
-                        spacing: dp(10)
-                        
-                        Label:
-                            text: 'SMS'
-                            size_hint_x: 0.8
-                            text_size: self.width, None
-                            halign: 'left'
-                            valign: 'center'
-                        
-                        Switch:
-                            id: sms_switch
-                            size_hint_x: None
-                            width: dp(60)
-                    
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        size_hint_y: None
-                        height: dp(50)
-                        spacing: dp(10)
-                        
-                        Label:
-                            text: 'App Notifications'
-                            size_hint_x: 0.8
-                            text_size: self.width, None
-                            halign: 'left'
-                            valign: 'center'
-                        
-                        Switch:
-                            id: notification_switch
-                            size_hint_x: None
-                            width: dp(60)
-                
-                CardLayout:
-                    orientation: 'vertical'
-                    spacing: dp(15)
-                    
-                    Label:
-                        text: 'Reminder Timing'
-                        font_size: sp(16)
-                        bold: True
-                        color: colors('#212529')
-                        size_hint_y: None
-                        height: dp(30)
-                        text_size: self.width, None
-                        halign: 'left'
-                    
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        size_hint_y: None
-                        height: dp(50)
-                        spacing: dp(10)
-                        
-                        Label:
-                            text: 'Days Before Due:'
-                            size_hint_x: 0.6
-                            text_size: self.width, None
-                            halign: 'left'
-                            valign: 'center'
-                        
-                        TextInput:
-                            id: days_before_input
-                            text: '3'
-                            size_hint_x: 0.4
-                            input_type: 'number'
-                            multiline: False
-                            background_color: colors('#ffffff')
-                            foreground_color: colors('#212529')
-                            padding: dp(10)
-                    
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        size_hint_y: None
-                        height: dp(50)
-                        spacing: dp(10)
-                        
-                        Label:
-                            text: 'Preferred Time:'
-                            size_hint_x: 0.6
-                            text_size: self.width, None
-                            halign: 'left'
-                            valign: 'center'
-                        
-                        TextInput:
-                            id: preferred_time_input
-                            text: '09:00'
-                            size_hint_x: 0.4
-                            multiline: False
-                            background_color: colors('#ffffff')
-                            foreground_color: colors('#212529')
-                            padding: dp(10)
-                
-                RoundedButton:
-                    text: 'SAVE SETTINGS'
+                    spacing: dp(20)
+                    padding: dp(20)
                     size_hint_y: None
-                    height: dp(55)
-                    background_color: colors('#4361ee')
-                    color: colors('#ffffff')
-                    bold: True
-                    font_size: sp(16)
-                    on_release: root.save_settings()
-                
-                CardLayout:
-                    orientation: 'vertical'
-                    spacing: dp(15)
+                    height: self.minimum_height
                     
-                    Label:
-                        text: 'Test Reminders'
-                        font_size: sp(16)
+                    CardLayout: # Uses the updated CardLayout style (semi-transparent)
+                        orientation: 'vertical'
+                        spacing: dp(15)
+                        
+                        Label:
+                            text: 'Reminder Channels'
+                            font_size: sp(16)
+                            bold: True
+                            color: 1, 1, 1, 1 # White text
+                            size_hint_y: None
+                            height: dp(30)
+                            text_size: self.width, None
+                            halign: 'left'
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: dp(50)
+                            spacing: dp(10)
+                            
+                            Label:
+                                text: 'WhatsApp'
+                                size_hint_x: 0.8
+                                text_size: self.width, None
+                                halign: 'left'
+                                valign: 'center'
+                                color: 1, 1, 1, 1 # White text
+                            
+                            Switch:
+                                id: whatsapp_switch
+                                size_hint_x: None
+                                width: dp(60)
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: dp(50)
+                            spacing: dp(10)
+                            
+                            Label:
+                                text: 'Voice Call'
+                                size_hint_x: 0.8
+                                text_size: self.width, None
+                                halign: 'left'
+                                valign: 'center'
+                                color: 1, 1, 1, 1 # White text
+                            
+                            Switch:
+                                id: call_switch
+                                size_hint_x: None
+                                width: dp(60)
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: dp(50)
+                            spacing: dp(10)
+                            
+                            Label:
+                                text: 'SMS'
+                                size_hint_x: 0.8
+                                text_size: self.width, None
+                                halign: 'left'
+                                valign: 'center'
+                                color: 1, 1, 1, 1 # White text
+                            
+                            Switch:
+                                id: sms_switch
+                                size_hint_x: None
+                                width: dp(60)
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: dp(50)
+                            spacing: dp(10)
+                            
+                            Label:
+                                text: 'App Notifications'
+                                size_hint_x: 0.8
+                                text_size: self.width, None
+                                halign: 'left'
+                                valign: 'center'
+                                color: 1, 1, 1, 1 # White text
+                            
+                            Switch:
+                                id: notification_switch
+                                size_hint_x: None
+                                width: dp(60)
+                    
+                    CardLayout: # Uses the updated CardLayout style (semi-transparent)
+                        orientation: 'vertical'
+                        spacing: dp(15)
+                        
+                        Label:
+                            text: 'Reminder Timing'
+                            font_size: sp(16)
+                            bold: True
+                            color: 1, 1, 1, 1 # White text
+                            size_hint_y: None
+                            height: dp(30)
+                            text_size: self.width, None
+                            halign: 'left'
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: dp(50)
+                            spacing: dp(10)
+                            
+                            Label:
+                                text: 'Days Before Due:'
+                                size_hint_x: 0.6
+                                text_size: self.width, None
+                                halign: 'left'
+                                valign: 'center'
+                                color: 1, 1, 1, 1 # White text
+                            
+                            GlassyTextInput: # Changed from TextInput to GlassyTextInput for consistency
+                                id: days_before_input
+                                text: '3'
+                                size_hint_x: 0.4
+                                input_type: 'number'
+                                multiline: False
+                                # Padding and colors handled by GlassyTextInput style
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: dp(50)
+                            spacing: dp(10)
+                            
+                            Label:
+                                text: 'Preferred Time:'
+                                size_hint_x: 0.6
+                                text_size: self.width, None
+                                halign: 'left'
+                                valign: 'center'
+                                color: 1, 1, 1, 1 # White text
+                            
+                            GlassyTextInput: # Changed from TextInput to GlassyTextInput for consistency
+                                id: preferred_time_input
+                                text: '09:00'
+                                size_hint_x: 0.4
+                                multiline: False
+                                # Padding and colors handled by GlassyTextInput style
+                    
+                    GlassyButton: # Changed from RoundedButton to GlassyButton for consistency
+                        text: 'SAVE SETTINGS'
+                        size_hint_y: None
+                        height: dp(55)
+                        # Background color and text color handled by GlassyButton style
                         bold: True
-                        color: colors('#212529')
-                        size_hint_y: None
-                        height: dp(30)
-                        text_size: self.width, None
-                        halign: 'left'
+                        font_size: sp(16)
+                        on_release: root.save_settings()
                     
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        spacing: dp(10)
+                    CardLayout: # Uses the updated CardLayout style (semi-transparent)
+                        orientation: 'vertical'
+                        spacing: dp(15)
+                        
+                        Label:
+                            text: 'Test Reminders'
+                            font_size: sp(16)
+                            bold: True
+                            color: 1, 1, 1, 1 # White text
+                            size_hint_y: None
+                            height: dp(30)
+                            text_size: self.width, None
+                            halign: 'left'
+                        
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: dp(50)
+                            
+                            GlassyButton: # Changed from RoundedButton to GlassyButton
+                                text: 'TEST WHATSAPP'
+                                size_hint_x: 0.5
+                                # Background color and text color handled by GlassyButton style
+                                bold: True
+                                font_size: sp(14)
+                                on_release: root.test_reminder('whatsapp')
+                            
+                            GlassyButton: # Changed from RoundedButton to GlassyButton
+                                text: 'TEST CALL'
+                                size_hint_x: 0.5
+                                # Background color and text color handled by GlassyButton style
+                                bold: True
+                                font_size: sp(14)
+                                on_release: root.test_reminder('call')
+                    
+                    GlassyButton: # Changed from RoundedButton to GlassyButton
+                        text: 'LOGOUT'
                         size_hint_y: None
-                        height: dp(50)
-                        
-                        RoundedButton:
-                            text: 'TEST WHATSAPP'
-                            size_hint_x: 0.5
-                            background_color: colors('#25d366')
-                            color: colors('#ffffff')
-                            bold: True
-                            font_size: sp(14)
-                            on_release: root.test_reminder('whatsapp')
-                        
-                        RoundedButton:
-                            text: 'TEST CALL'
-                            size_hint_x: 0.5
-                            background_color: colors('#4361ee')
-                            color: colors('#ffffff')
-                            bold: True
-                            font_size: sp(14)
-                            on_release: root.test_reminder('call')
-                
-                RoundedButton:
-                    text: 'LOGOUT'
-                    size_hint_y: None
-                    height: dp(55)
-                    background_color: colors('#e63946')
-                    color: colors('#ffffff')
-                    bold: True
-                    font_size: sp(16)
-                    on_release: root.logout()
+                        height: dp(55)
+                        # Background color and text color handled by GlassyButton style
+                        bold: True
+                        font_size: sp(16)
+                        on_release: root.logout()

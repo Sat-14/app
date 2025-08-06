@@ -14,6 +14,14 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.storage.jsonstore import JsonStore
 from kivy.properties import ListProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.textinput import TextInput
+# ... other imports
+from kivy.properties import ListProperty, NumericProperty
+from kivy.animation import Animation
+# ... other imports
+
+
 
 
 # --- Imports for Glassy UI ---
@@ -26,8 +34,31 @@ from datetime import datetime
 from functools import partial
 import threading
 
+# Add these missing class definitions
+class GlassyCard(BoxLayout):
+    pass
+
+class GlassyTextInput(TextInput):
+    pass
+
+class CardLayout(BoxLayout):
+    pass
+
+class RoundedButton(Button):
+    pass
+
+class IconButton(Button):
+    pass
+
+class CustomTextInput(TextInput):
+    pass
+
 # --- Add this new Class for the Glassy Button ---
 class GlassyButton(Button):
+    _color_normal = ListProperty([0, 0, 0, 1])
+    _color_down = ListProperty([0, 0, 0, 1])
+    scale = NumericProperty(1.0)
+
     def _create_gradient(self, color1, color2):
         # Add a check to ensure colors are valid before proceeding
         if not color1 or not color2 or self.width <= 0 or self.height <= 0:
