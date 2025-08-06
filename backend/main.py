@@ -13,26 +13,57 @@ from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.storage.jsonstore import JsonStore
-from kivy.properties import ListProperty
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.textinput import TextInput
-# ... other imports
 from kivy.properties import ListProperty, NumericProperty
-from kivy.animation import Animation
-# ... other imports
-
-
+from kivy.uix.textinput import TextInput # Ensure TextInput is explicitly imported
 
 
 # --- Imports for Glassy UI ---
 from kivy.uix.button import Button
 from kivy.graphics.texture import Texture
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.floatlayout import FloatLayout
+from kivy.properties import BooleanProperty, ListProperty
 from kivy.animation import Animation
+from kivy.utils import get_color_from_hex
+
 import requests
 import json
 from datetime import datetime
 from functools import partial
 import threading
+
+
+# Add this entire class to main.py
+class ModernSwitch(ButtonBehavior, FloatLayout):
+    active = BooleanProperty(False)
+    _track_color_active = ListProperty(get_color_from_hex('#4361ee')) # Blue for ON state
+    _track_color_inactive = ListProperty(get_color_from_hex('#6c757d')) # Gray for OFF state
+    _thumb_color = ListProperty(get_color_from_hex('#f8f9fa')) # Light color for the thumb
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # We need to wait for the ids to be available
+        Clock.schedule_once(self._update_thumb_pos)
+
+    def on_active(self, instance, value):
+        """Animates the thumb when the state changes."""
+        self._update_thumb_pos()
+
+    def on_press(self):
+        """Toggles the state when pressed."""
+        self.active = not self.active
+
+    def _update_thumb_pos(self, *args):
+        """Moves the thumb to the correct position with animation."""
+        if self.active:
+            # Position for 'ON' state (right side)
+            pos = (self.right - self.ids.thumb.width - dp(4), self.y + dp(4))
+        else:
+            # Position for 'OFF' state (left side)
+            pos = (self.x + dp(4), self.y + dp(4))
+        
+        anim = Animation(pos=pos, duration=0.15, t='out_quad')
+        anim.start(self.ids.thumb)
 
 # Add these missing class definitions
 class GlassyCard(BoxLayout):
@@ -58,13 +89,22 @@ class GlassyButton(Button):
     _color_normal = ListProperty([0, 0, 0, 1])
     _color_down = ListProperty([0, 0, 0, 1])
     scale = NumericProperty(1.0)
+    is_active = BooleanProperty(False) # New property for active state
+
+    # NEW: Define these properties as ListProperty
+    _gradient_color_1 = ListProperty([0, 0, 0, 1])
+    _gradient_color_2 = ListProperty([0, 0, 0, 1])
+    _active_color = ListProperty([0, 0, 0, 1])
+    _inactive_color = ListProperty([0, 0, 0, 1])
 
     def _create_gradient(self, color1, color2):
         # Add a check to ensure colors are valid before proceeding
+        # Also ensure width/height are positive integers for Texture.create
         if not color1 or not color2 or self.width <= 0 or self.height <= 0:
             return Texture.create(size=(1, 1)) # Return a blank texture
 
-        texture = Texture.create(size=(self.width, self.height), colorfmt='rgba')
+        # Ensure integer sizes for Texture.create
+        texture = Texture.create(size=(int(self.width), int(self.height)), colorfmt='rgba')
         buf = bytearray()
         for x in range(int(self.width)):
             for y in range(int(self.height)):
@@ -78,7 +118,6 @@ class GlassyButton(Button):
         texture.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
         return texture
 # -------------------------------------------------
-
 
 
 # Set window size for desktop testing
@@ -134,7 +173,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_register).start()
     
@@ -149,7 +188,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_login).start()
     
@@ -163,7 +202,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_get_bills).start()
     
@@ -178,7 +217,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_create_bill).start()
     
@@ -193,7 +232,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_update_bill).start()
     
@@ -207,7 +246,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_delete_bill).start()
     
@@ -221,7 +260,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_mark_paid).start()
     
@@ -236,7 +275,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_send_reminder).start()
     
@@ -250,7 +289,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_get_settings).start()
     
@@ -265,7 +304,7 @@ class APIManager:
                 )
                 Clock.schedule_once(lambda dt: callback(response), 0)
             except Exception as e:
-                Clock.schedule_once(lambda dt: callback(None, str(e)), 0)
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_update_settings).start()
 
@@ -290,15 +329,18 @@ class DashboardScreen(Screen):
         """Update navigation button colors based on current screen"""
         current_screen = self.manager.current
         
-        # Reset all buttons to inactive color
-        self.ids.btn_home.color = (0.42, 0.42, 0.42, 1)  # #6c757d
-        self.ids.btn_settings.color = (0.42, 0.42, 0.42, 1)
+        # Reset all buttons to inactive state
+        self.ids.btn_home.is_active = False
+        self.ids.btn_add.is_active = False # Ensure 'Add' button also has an active state logic
+        self.ids.btn_settings.is_active = False
         
-        # Set active button color
+        # Set active button
         if current_screen == 'dashboard':
-            self.ids.btn_home.color = (0.26, 0.38, 0.93, 1)  # #4361ee
+            self.ids.btn_home.is_active = True
+        elif current_screen == 'add_bill': # Add logic for 'Add' button
+            self.ids.btn_add.is_active = True
         elif current_screen == 'settings':
-            self.ids.btn_settings.color = (0.26, 0.38, 0.93, 1)
+            self.ids.btn_settings.is_active = True
     
     def load_bills(self):
         """Load bills from API"""
@@ -664,3 +706,4 @@ class BillsReminderApp(App):
 
 if __name__ == '__main__':
     BillsReminderApp().run()
+

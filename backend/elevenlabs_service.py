@@ -1,8 +1,10 @@
 import os
 import tempfile
-from elevenlabs import generate, Voice, VoiceSettings, save, set_api_key, voices
+from elevenlabs.client import ElevenLabs
+from elevenlabs import play, save, stream, VoiceSettings
 from dotenv import load_dotenv
 import logging
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -17,10 +19,11 @@ api_key = os.getenv("ELEVENLABS_API_KEY")
 logger.info(f"[ELEVENLABS INIT] API key loaded: {'*' * 30 + api_key[-4:] if api_key else 'NOT SET'}")
 
 try:
-    set_api_key(api_key)
-    logger.info("[ELEVENLABS INIT] API key successfully set")
+    # Initialize client with API key
+    client = ElevenLabs(api_key=api_key)
+    logger.info("[ELEVENLABS INIT] Client successfully initialized")
 except Exception as e:
-    logger.error(f"[ELEVENLABS INIT ERROR] Failed to set API key: {str(e)}")
+    logger.error(f"[ELEVENLABS INIT ERROR] Failed to initialize client: {str(e)}")
 
 def generate_voice_audio(text: str, voice_id: str = None):
     """Generate voice audio using ElevenLabs API."""
@@ -47,14 +50,13 @@ def generate_voice_audio(text: str, voice_id: str = None):
         )
         logger.debug(f"[ELEVENLABS GENERATE] Voice settings - Stability: 0.5, Similarity: 0.75, Style: 0.5, Speaker boost: True")
         
-        # Generate audio
+        # Generate audio using new client method
         logger.info("[ELEVENLABS GENERATE] Calling ElevenLabs API to generate audio")
-        audio = generate(
+        audio = client.text_to_speech.convert(
             text=text,
-            voice=Voice(
-                voice_id=voice_id,
-                settings=voice_settings
-            )
+            voice_id=voice_id,
+            model_id="eleven_multilingual_v2",
+            voice_settings=voice_settings
         )
         logger.info("[ELEVENLABS GENERATE] Audio generated successfully")
         
@@ -88,7 +90,9 @@ def get_available_voices():
     
     try:
         logger.debug("[ELEVENLABS VOICES] Calling ElevenLabs API to get voices")
-        available_voices = voices()  # this returns a list of Voice objects
+        # Use new client method to get voices
+        voices_response = client.voices.search()
+        available_voices = voices_response.voices
         
         logger.info(f"[ELEVENLABS VOICES] Retrieved {len(available_voices)} voices")
         
