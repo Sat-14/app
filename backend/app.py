@@ -7,6 +7,7 @@ from auth import auth_bp
 from bills import bills_bp
 from reminders import reminders_bp
 from receipts import receipts_bp
+from loans import loans_bp  # Import the new loans blueprint
 from scheduler import start_scheduler
 from local_storage_service import init_storage
 import os
@@ -26,7 +27,6 @@ def create_app():
     logger.info(f"[APP INIT] Current time: {datetime.now()}")
     logger.info("=" * 80)
     
-    # This is the corrected version without the duplicated line.
     app = Flask(__name__)
     logger.info(f"[APP INIT] Flask app created: {app.name}")
     
@@ -65,7 +65,8 @@ def create_app():
         (auth_bp, '/api/auth', 'auth'),
         (bills_bp, '/api/bills', 'bills'),
         (reminders_bp, '/api/reminders', 'reminders'),
-        (receipts_bp, '/api/receipts', 'receipts')
+        (receipts_bp, '/api/receipts', 'receipts'),
+        (loans_bp, '/api', 'loans')  # Register the loans blueprint
     ]
     
     for blueprint, prefix, name in blueprints:
@@ -128,8 +129,7 @@ if __name__ == '__main__':
             logger.error(f"[MAIN ERROR] Failed to create database tables: {str(e)}", exc_info=True)
             raise
     
-    # This is the final fix: Start the scheduler, then run the app with
-    # use_reloader=False to ensure only a single process is running.
+    # Start the scheduler
     logger.info("[MAIN] Starting scheduler")
     try:
         start_scheduler(app)
