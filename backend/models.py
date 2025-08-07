@@ -58,6 +58,7 @@ class Bill(db.Model):
     enable_local_notification = db.Column(db.Boolean, default=True)
     
     payments = db.relationship('Payment', backref='bill', lazy=True, cascade='all, delete-orphan')
+    loan_details = db.relationship('LoanDetails', backref='bill', uselist=False, cascade='all, delete-orphan')
     
     def __init__(self, **kwargs):
         super(Bill, self).__init__(**kwargs)
@@ -156,6 +157,104 @@ class ReminderSettings(db.Model):
             'days_before': self.days_before,
             'preferred_time': self.preferred_time,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class LoanDetails(db.Model):
+    """Track loan/EMI details for bills"""
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    bill_id = db.Column(db.String(36), db.ForeignKey('bill.id'), nullable=False, unique=True)
+    
+    # Loan basic details
+    total_amount = db.Column(db.Float, nullable=False)  # Total loan amount
+    monthly_payment = db.Column(db.Float, nullable=False)  # EMI/Monthly payment
+    interest_rate = db.Column(db.Float, default=0)  # Annual interest rate (optional)
+    total_installments = db.Column(db.Integer, nullable=False)  # Total number of installments
+    
+    # Payment tracking
+    installments_paid = db.Column(db.Integer, default=0)  # Number of installments paid
+    total_paid = db.Column(db.Float, default=0)  # Total amount paid so far
+    amount_remaining = db.Column(db.Float)  # Remaining amount to pay
+    
+    # Dates
+    loan_start_date = db.Column(db.DateTime, nullable=False)
+    expected_completion_date = db.Column(db.DateTime)
+    last_payment_date = db.Column(db.DateTime)
+    next_payment_date = db.Column(db.DateTime)
+    
+    # Additional tracking
+    payment_history = db.Column(db.Text)  # JSON string of payment history
+    is_active = db.Column(db.Boolean, default=True)
+    notes = db.Column(db.Text)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __init__(self, **kwargs):
+        super(LoanDetails, self).__init__(**kwargs)
+        self.calculate_loan_details()
+        logger.info(f"[LOAN MODEL] Creating loan details for bill: {kwargs.get('bill_id')}")
+    
+    def calculate_loan_details(self):
+        """Calculate loan details like remaining amount and completion date"""
+        if self.total_amount and self.monthly_payment:
+            # Calculate remaining amount
+            self.amount_remaining = self.total_amount - self.total_paid
+            
+            # Calculate expected completion date if not set
+            if not self.expected_completion_date and self.total_installments:
+                from dateutil.relativedelta import relativedelta
+                self.expected_completion_date = self.loan_start_date + relativedelta(months=self.total_installments)
+            
+            # Calculate next payment date
+            if self.loan_start_date:
+                from dateutil.relativedelta import relativedelta
+                self.next_payment_date = self.loan_start_date + relativedelta(months=self.installments_paid + 1)
+    
+    def make_payment(self, amount=None):
+        """Record a payment for the loan"""
+        import json
+        from datetime import datetime
+        
+        payment_amount = amount or self.monthly_payment
+        
+        # Update payment tracking
+        self.installments_paid += 1
+        self.total_paid += payment_amount
+        self.amount_remaining = self.total_amount - self.total_paid
+        self.last_payment_date = datetime.utcnow()
+        
+        # Update payment history
+        payment_record = {
+            'installment_no': self.installments_paid,
+            'amount': payment_amount,
+            'date': self.last_payment_date.isoformat(),
+            'remaining': self.amount_remaining
+        }
+        
+        if self.payment_history:
+            history = json.loads(self.payment_history)
+        else:
+            history = []
+        
+        history.append(payment_record)
+        self.payment_history = json.dumps(history)
+        
+        # Calculate next payment date
+        from dateutil.relativedelta import relativedelta
+        self.next_payment_date = self.loan_start_date + relativedelta(months=self.installments_paid + 1)
+        
+        # Check if loan is completed
+        if self.installments_paid >= self.total_installments or self.amount_remaining <= 0:
+            self.is_active = False
+            logger.info(f"[LOAN MODEL] Loan completed for bill {self.bill_id}")
+        
+        self.updated_at = datetime.utcnow()
+        
+        return {
+            'installment_no': self.installments_paid,
+            'amount_paid': payment_amount,
+            'amount_remaining': self.amount_remaining,
+            'is_completed': not self.is_active
         }
 
 # Database event listeners for logging
