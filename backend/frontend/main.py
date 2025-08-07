@@ -1,4 +1,4 @@
-# main.py - Main Android Application
+# main.py - Main Android Application with Loan Tracking
 import os
 os.environ['KIVY_LOG_MODE'] = 'PYTHON'
 
@@ -46,8 +46,6 @@ from kivy.properties import (
 # Kivy Animation
 from kivy.animation import Animation
 
-
-
 class HoverBehavior(object):
     hovering = BooleanProperty(False)
     border_point = None
@@ -78,39 +76,31 @@ class HoverBehavior(object):
     def on_leave(self, *args):
         pass
 
-# Add this entire class to main.py
 class ModernSwitch(ButtonBehavior, FloatLayout):
     active = BooleanProperty(False)
-    _track_color_active = ListProperty(get_color_from_hex('#4361ee')) # Blue for ON state
-    _track_color_inactive = ListProperty(get_color_from_hex('#6c757d')) # Gray for OFF state
-    _thumb_color = ListProperty(get_color_from_hex('#f8f9fa')) # Light color for the thumb
+    _track_color_active = ListProperty(get_color_from_hex('#4361ee'))
+    _track_color_inactive = ListProperty(get_color_from_hex('#6c757d'))
+    _thumb_color = ListProperty(get_color_from_hex('#f8f9fa'))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # We need to wait for the ids to be available
         Clock.schedule_once(self._update_thumb_pos)
 
     def on_active(self, instance, value):
-        """Animates the thumb when the state changes."""
         self._update_thumb_pos()
 
     def on_press(self):
-        """Toggles the state when pressed."""
         self.active = not self.active
 
     def _update_thumb_pos(self, *args):
-        """Moves the thumb to the correct position with animation."""
         if self.active:
-            # Position for 'ON' state (right side)
             pos = (self.right - self.ids.thumb.width - dp(4), self.y + dp(4))
         else:
-            # Position for 'OFF' state (left side)
             pos = (self.x + dp(4), self.y + dp(4))
         
         anim = Animation(pos=pos, duration=0.15, t='out_quad')
         anim.start(self.ids.thumb)
 
-# Add these missing class definitions
 class GlassyCard(BoxLayout):
     pass
 
@@ -132,27 +122,20 @@ class IconButton(HoverBehavior, Button):
 class IconLabelButton(HoverBehavior, ButtonBehavior, BoxLayout):
     pass
 
-
-# --- Add this new Class for the Glassy Button ---
 class GlassyButton(HoverBehavior, Button):
     _color_normal = ListProperty([0, 0, 0, 1])
     _color_down = ListProperty([0, 0, 0, 1])
     scale = NumericProperty(1.0)
-    is_active = BooleanProperty(False) # New property for active state
-
-    # NEW: Define these properties as ListProperty
+    is_active = BooleanProperty(False)
     _gradient_color_1 = ListProperty([0, 0, 0, 1])
     _gradient_color_2 = ListProperty([0, 0, 0, 1])
     _active_color = ListProperty([0, 0, 0, 1])
     _inactive_color = ListProperty([0, 0, 0, 1])
 
     def _create_gradient(self, color1, color2):
-        # Add a check to ensure colors are valid before proceeding
-        # Also ensure width/height are positive integers for Texture.create
         if not color1 or not color2 or self.width <= 0 or self.height <= 0:
-            return Texture.create(size=(1, 1)) # Return a blank texture
+            return Texture.create(size=(1, 1))
 
-        # Ensure integer sizes for Texture.create
         texture = Texture.create(size=(int(self.width), int(self.height)), colorfmt='rgba')
         buf = bytearray()
         for x in range(int(self.width)):
@@ -166,8 +149,6 @@ class GlassyButton(HoverBehavior, Button):
         
         texture.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
         return texture
-# -------------------------------------------------
-
 
 # Set window size for desktop testing
 if platform != 'android':
@@ -356,6 +337,65 @@ class APIManager:
                 Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
         
         threading.Thread(target=_update_settings).start()
+    
+    # Loan tracking methods
+    def get_loan_details(self, bill_id, callback):
+        """Get loan details for a bill"""
+        def _get_loan_details():
+            try:
+                response = requests.get(
+                    f"{self.base_url}/bills/{bill_id}/loan",
+                    headers=self.get_headers()
+                )
+                Clock.schedule_once(lambda dt: callback(response), 0)
+            except Exception as e:
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
+        
+        threading.Thread(target=_get_loan_details).start()
+
+    def create_loan_details(self, bill_id, loan_data, callback):
+        """Create loan details for a bill"""
+        def _create_loan_details():
+            try:
+                response = requests.post(
+                    f"{self.base_url}/bills/{bill_id}/loan",
+                    json=loan_data,
+                    headers=self.get_headers()
+                )
+                Clock.schedule_once(lambda dt: callback(response), 0)
+            except Exception as e:
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
+        
+        threading.Thread(target=_create_loan_details).start()
+
+    def record_loan_payment(self, bill_id, amount, callback):
+        """Record a loan payment"""
+        def _record_payment():
+            try:
+                response = requests.post(
+                    f"{self.base_url}/bills/{bill_id}/loan/payment",
+                    json={'amount': amount} if amount else {},
+                    headers=self.get_headers()
+                )
+                Clock.schedule_once(lambda dt: callback(response), 0)
+            except Exception as e:
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
+        
+        threading.Thread(target=_record_payment).start()
+
+    def get_loans_summary(self, callback):
+        """Get summary of all loans"""
+        def _get_summary():
+            try:
+                response = requests.get(
+                    f"{self.base_url}/loans/summary",
+                    headers=self.get_headers()
+                )
+                Clock.schedule_once(lambda dt: callback(response), 0)
+            except Exception as e:
+                Clock.schedule_once(lambda dt, err=str(e): callback(None, err), 0)
+        
+        threading.Thread(target=_get_summary).start()
 
 class LoginScreen(Screen):
     """Login screen"""
@@ -380,13 +420,13 @@ class DashboardScreen(Screen):
         
         # Reset all buttons to inactive state
         self.ids.btn_home.is_active = False
-        self.ids.btn_add.is_active = False # Ensure 'Add' button also has an active state logic
+        self.ids.btn_add.is_active = False
         self.ids.btn_settings.is_active = False
         
         # Set active button
         if current_screen == 'dashboard':
             self.ids.btn_home.is_active = True
-        elif current_screen == 'add_bill': # Add logic for 'Add' button
+        elif current_screen == 'add_bill':
             self.ids.btn_add.is_active = True
         elif current_screen == 'settings':
             self.ids.btn_settings.is_active = True
@@ -468,7 +508,7 @@ class BillItem(BoxLayout):
         """Handle mark as paid response"""
         app = App.get_running_app()
         if response and response.status_code == 200:
-            app.root.get_screen('dashboard').load_bills()  # Reload bills
+            app.root.get_screen('dashboard').load_bills()
         else:
             app.show_popup('Error', 'Failed to mark bill as paid')
             
@@ -521,16 +561,55 @@ class BillItem(BoxLayout):
             app.show_popup('Error', 'Failed to delete bill')
 
 class AddBillScreen(Screen):
-    """Add/Edit bill screen"""
+    """Add/Edit bill screen with loan tracking"""
     bill_data = ObjectProperty({})
     is_edit_mode = BooleanProperty(False)
+    is_loan = BooleanProperty(False)
     
     def on_enter(self):
         """Called when screen is displayed"""
         if self.is_edit_mode and self.bill_data:
             self.populate_form()
+            self.check_loan_details()
         else:
             self.clear_form()
+    
+    def check_loan_details(self):
+        """Check if bill has loan details"""
+        if self.bill_data.get('id'):
+            app = App.get_running_app()
+            app.api.get_loan_details(self.bill_data['id'], self.on_loan_details_loaded)
+    
+    def on_loan_details_loaded(self, response, error=None):
+        """Handle loan details loading"""
+        if response and response.status_code == 200:
+            loan_data = response.json()
+            self.is_loan = True
+            # Update UI with loan details
+            self.ids.loan_switch.active = True
+            self.ids.total_loan_amount.text = str(loan_data.get('total_amount', ''))
+            self.ids.monthly_emi.text = str(loan_data.get('monthly_payment', ''))
+            self.ids.total_installments.text = str(loan_data.get('total_installments', ''))
+            self.ids.installments_paid.text = str(loan_data.get('installments_paid', '0'))
+            self.ids.interest_rate.text = str(loan_data.get('interest_rate', '0'))
+            # Show loan info card
+            self.ids.loan_details_card.opacity = 1
+            self.ids.loan_details_card.disabled = False
+            self.ids.loan_details_card.height = dp(400)
+    
+    def toggle_loan_details(self, is_active):
+        """Toggle loan details visibility"""
+        self.is_loan = is_active
+        if is_active:
+            # Show loan details card with animation
+            anim = Animation(opacity=1, height=dp(400), duration=0.3)
+            anim.start(self.ids.loan_details_card)
+            self.ids.loan_details_card.disabled = False
+        else:
+            # Hide loan details card
+            anim = Animation(opacity=0, height=0, duration=0.3)
+            anim.start(self.ids.loan_details_card)
+            self.ids.loan_details_card.disabled = True
     
     def populate_form(self):
         """Populate form with existing bill data"""
@@ -561,10 +640,22 @@ class AddBillScreen(Screen):
         self.ids.bill_notes.text = ''
         self.bill_data = {}
         self.is_edit_mode = False
+        self.is_loan = False
         self.ids.enable_call_switch.active = False
+        self.ids.loan_switch.active = False
+        # Clear loan fields
+        self.ids.total_loan_amount.text = ''
+        self.ids.monthly_emi.text = ''
+        self.ids.total_installments.text = ''
+        self.ids.installments_paid.text = '0'
+        self.ids.interest_rate.text = '0'
+        # Hide loan details card
+        self.ids.loan_details_card.opacity = 0
+        self.ids.loan_details_card.height = 0
+        self.ids.loan_details_card.disabled = True
     
     def save_bill(self):
-        """Save or update bill"""
+        """Save or update bill with loan details"""
         if not self.ids.bill_name.text or not self.ids.bill_amount.text or not self.ids.bill_due_date.text:
             self.show_error("Please fill all required fields")
             return
@@ -591,23 +682,72 @@ class AddBillScreen(Screen):
         }
         
         app = App.get_running_app()
+        
+        # Handle loan details if enabled
+        if self.is_loan and self.ids.loan_switch.active:
+            # Override amount with EMI for loans
+            if self.ids.monthly_emi.text:
+                bill_data['amount'] = float(self.ids.monthly_emi.text)
+            
+            # Set frequency to monthly for loans
+            bill_data['frequency'] = 'monthly'
+        
         if self.is_edit_mode and self.bill_data.get('id'):
-            app.api.update_bill(self.bill_data['id'], bill_data, self.on_save_response)
+            app.api.update_bill(self.bill_data['id'], bill_data, 
+                               lambda r, e=None: self.on_bill_saved(r, e, self.bill_data['id']))
         else:
-            app.api.create_bill(bill_data, self.on_save_response)
+            app.api.create_bill(bill_data, 
+                              lambda r, e=None: self.on_bill_saved(r, e, None))
     
-    def on_save_response(self, response, error=None):
-        """Handle save response"""
+    def on_bill_saved(self, response, error, bill_id):
+        """Handle bill save response and save loan details if needed"""
         if error:
             self.show_error("Failed to save bill")
             return
         
         if response and response.status_code in [200, 201]:
+            # Get the bill ID
+            if not bill_id:
+                bill_data = response.json()
+                bill_id = bill_data.get('id')
+            
+            # Save loan details if enabled
+            if self.is_loan and self.ids.loan_switch.active and bill_id:
+                self.save_loan_details(bill_id)
+            else:
+                # Navigate back to dashboard
+                app = App.get_running_app()
+                app.root.current = 'dashboard'
+                app.root.get_screen('dashboard').load_bills()
+        else:
+            self.show_error("Failed to save bill")
+    
+    def save_loan_details(self, bill_id):
+        """Save loan details for the bill"""
+        try:
+            loan_data = {
+                'total_amount': float(self.ids.total_loan_amount.text or 0),
+                'monthly_payment': float(self.ids.monthly_emi.text or 0),
+                'total_installments': int(self.ids.total_installments.text or 0),
+                'installments_paid': int(self.ids.installments_paid.text or 0),
+                'interest_rate': float(self.ids.interest_rate.text or 0),
+                'total_paid': float(self.ids.installments_paid.text or 0) * float(self.ids.monthly_emi.text or 0)
+            }
+            
             app = App.get_running_app()
+            app.api.create_loan_details(bill_id, loan_data, self.on_loan_saved)
+            
+        except ValueError as e:
+            self.show_error("Invalid loan details")
+    
+    def on_loan_saved(self, response, error=None):
+        """Handle loan details save response"""
+        app = App.get_running_app()
+        if response and response.status_code == 201:
             app.root.current = 'dashboard'
             app.root.get_screen('dashboard').load_bills()
         else:
-            self.show_error("Failed to save bill")
+            self.show_error("Failed to save loan details")
     
     def show_error(self, message):
         """Show error popup"""
@@ -758,4 +898,3 @@ class BillsReminderApp(App):
 
 if __name__ == '__main__':
     BillsReminderApp().run()
-
