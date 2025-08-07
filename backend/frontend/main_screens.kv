@@ -1,13 +1,13 @@
 # Dashboard Screen
 <DashboardScreen>:
-    name: 'dashboard' # Ensure the screen has a name for manager transitions
+    name: 'dashboard'
 
-    RelativeLayout: # Main container for background image and overlay
+    RelativeLayout:
         AsyncImage:
             source: 'new_bg.jpg'
             fit_mode: 'cover'
 
-        BoxLayout: # Dark overlay for contrast
+        BoxLayout:
             canvas.before:
                 Color:
                     rgba: 0, 0, 0, 0.4
@@ -15,36 +15,32 @@
                     pos: self.pos
                     size: self.size
 
-        # This BoxLayout will contain all the main content of the dashboard,
-        # positioned above the navigation bar.
         BoxLayout:
             orientation: 'vertical'
-            padding: dp(15) # Padding for the content area
+            padding: dp(15)
             spacing: dp(10)
             pos_hint: {'top': 1, 'left': 0}
-            size_hint: 1, None # Full width, height will be calculated
-            # Calculate height to fill space above the nav bar
-            # This ensures the content area doesn't overlap with the navigation bar
+            size_hint: 1, None
             height: self.parent.height - self.parent.ids.nav_bar_container.height if self.parent and self.parent.ids and 'nav_bar_container' in self.parent.ids else self.parent.height
 
-            Widget: # Added to push the header down
+            Widget:
                 size_hint_y: None
-                height: dp(20) # This value controls the vertical position of the header
+                height: dp(20)
 
-            BoxLayout: # Header
+            BoxLayout:
                 orientation: 'horizontal'
                 size_hint_y: None
                 height: dp(70)
                 padding: dp(15), dp(10)
                 canvas.before:
                     Color:
-                        rgba: 0.1, 0.1, 0.1, 0.6 # Semi-transparent header bar
-                    RoundedRectangle: # Rounded corners for the header
+                        rgba: 0.1, 0.1, 0.1, 0.6
+                    RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [dp(12),] # Apply rounded corners
+                        radius: [dp(12),]
                     Color:
-                        rgba: 1, 1, 1, 0.4 # Light border for the header
+                        rgba: 1, 1, 1, 0.4
                     Line:
                         width: 1.5
                         rounded_rectangle: (self.x, self.y, self.width, self.height, dp(12))
@@ -53,7 +49,7 @@
                     text: 'My Bills'
                     font_size: sp(22)
                     bold: True
-                    color: 1, 1, 1, 1 # White text for the title
+                    color: 1, 1, 1, 1
                     text_size: self.width, None
                     halign: 'left'
                     valign: 'middle'
@@ -68,16 +64,16 @@
                         root.manager.get_screen('add_bill').clear_form()
                         root.manager.current = 'add_bill'
 
-            BoxLayout: # Upcoming Payments section
+            BoxLayout:
                 orientation: 'vertical'
                 padding: dp(10)
                 spacing: dp(10)
-                size_hint_y: 1 # This will expand to fill the remaining space
+                size_hint_y: 1
 
                 Label:
                     text: 'UPCOMING PAYMENTS'
                     font_size: sp(13)
-                    color: 1, 1, 1, 1 # Lighter gray for text on dark background
+                    color: 1, 1, 1, 1
                     bold: True
                     size_hint_y: None
                     height: dp(30)
@@ -86,8 +82,8 @@
                     padding: dp(10), 0
 
                 ScrollView:
-                    bar_width: 0 # Hide the scrollbar
-                    effect_cls: 'DampedScrollEffect' # Add smooth scrolling effect
+                    bar_width: 0
+                    effect_cls: 'DampedScrollEffect'
                     BoxLayout:
                         id: bills_list
                         orientation: 'vertical'
@@ -96,85 +92,78 @@
                         size_hint_y: None
                         height: self.minimum_height
 
-        # Navigation Bar - Moved to be a direct child of RelativeLayout
         BoxLayout:
-            id: nav_bar_container # Added an ID to reference its height for the content area
+            id: nav_bar_container
             orientation: 'horizontal'
             size_hint_y: None
-            height: dp(60) # Reduced height for a more compact look
-            pos_hint: {'x': 0, 'y': 0} # Stick to the very bottom-left corner
-            size_hint_x: 1 # Ensure it spans full width
-            padding: 0 # Remove all padding to stick to edges
-            spacing: 0 # Changed spacing to 0 to control spacing with separators
+            height: dp(60)
+            pos_hint: {'x': 0, 'y': 0}
+            size_hint_x: 1
+            padding: 0
+            spacing: 0
             canvas.before:
                 Color:
-                    rgba: 0.1, 0.1, 0.1, 0.6 # Semi-transparent navigation bar background
-                Rectangle: # Use Rectangle for sharp corners and flush look
+                    rgba: 0.1, 0.1, 0.1, 0.6
+                Rectangle:
                     pos: self.pos
                     size: self.size
                 Color:
-                    rgba: 1, 1, 1, 0.4 # Light border color
+                    rgba: 1, 1, 1, 0.4
                 Line:
                     width: 1.5
-                    # Draw a line only at the top of the navigation bar for a clean border
                     points: self.x, self.y + self.height, self.x + self.width, self.y + self.height
 
             Button:
                 id: btn_home
                 text: 'Home'
                 background_color: 0, 0, 0, 0
-                color: 1, 1, 1, 1 # White text for nav buttons
-                font_size: sp(15) # Adjusted font size for smaller bar
+                color: 1, 1, 1, 1
+                font_size: sp(15)
                 on_release:
                     root.manager.current = 'dashboard'
                     root.update_nav_buttons()
 
-            Widget: # Separator 1
+            Widget:
                 size_hint_x: None
-                width: dp(3) # Increased width for a bolder line
+                width: dp(3)
                 canvas:
                     Color:
-                        rgba: 1, 1, 1, 0.2 # Color of the separator line (light gray/white)
+                        rgba: 1, 1, 1, 0.2
                     Rectangle:
-                        pos: self.x, self.y + dp(10) # Adjusted Y to center vertically in new height
-                        size: self.width, self.height - dp(20) # Adjusted height for new bar height
+                        pos: self.x, self.y + dp(10)
+                        size: self.width, self.height - dp(20)
 
             Button:
                 id: btn_add
                 text: 'Add'
                 background_color: 0, 0, 0, 0
-                color: 1, 1, 1, 1 # White text for nav buttons
-                font_size: sp(15) # Adjusted font size for smaller bar
+                color: 1, 1, 1, 1
+                font_size: sp(15)
                 on_release:
                     root.manager.get_screen('add_bill').clear_form()
                     root.manager.current = 'add_bill'
 
-            Widget: # Separator 2
+            Widget:
                 size_hint_x: None
-                width: dp(3) # Increased width for a bolder line
+                width: dp(3)
                 canvas:
                     Color:
-                        rgba: 1, 1, 1, 0.2 # Color of the separator line (light gray/white)
+                        rgba: 1, 1, 1, 0.2
                     Rectangle:
-                        pos: self.x, self.y + dp(10) # Adjusted Y to center vertically in new height
-                        size: self.width, self.height - dp(20) # Adjusted height for new bar height
+                        pos: self.x, self.y + dp(10)
+                        size: self.width, self.height - dp(20)
 
             Button:
                 id: btn_settings
                 text: 'Settings'
                 background_color: 0, 0, 0, 0
-                color: 1, 1, 1, 1 # White text for nav buttons
-                font_size: sp(15) # Adjusted font size for smaller bar
+                color: 1, 1, 1, 1
+                font_size: sp(15)
                 on_release:
                     root.manager.current = 'settings'
                     root.update_nav_buttons()
 
-
-
-
-
-# Add/Edit Bill Screen
-# Replace the entire <AddBillScreen> rule in billsreminder.kv with this:
+# Add/Edit Bill Screen with Loan Tracking
 <AddBillScreen>:
     RelativeLayout:
         AsyncImage:
@@ -237,7 +226,6 @@
                     size_hint_x: None
                     width: dp(20)
 
-
                 Label:
                     text: 'Edit Bill' if root.is_edit_mode else 'Add Bill'
                     font_size: sp(22)
@@ -252,11 +240,10 @@
                     size_hint_x: None
                     width: dp(60)
 
-
             # Scrollable Content Section
             ScrollView:
-                bar_width: 0 # Hide the scrollbar
-                effect_cls: 'DampedScrollEffect' # Add smooth scrolling effect
+                bar_width: 0
+                effect_cls: 'DampedScrollEffect'
                 BoxLayout:
                     orientation: 'vertical'
                     spacing: dp(15)
@@ -363,6 +350,183 @@
                                     id: enable_call_switch
                                     pos_hint: {'center_y': 0.5}
 
+                    # Loan/EMI Details Card
+                    BoxLayout:
+                        size_hint_y: None
+                        height: self.minimum_height
+                        CardLayout:
+                            orientation: 'vertical'
+                            spacing: dp(12)
+                            
+                            # Loan Toggle Header
+                            BoxLayout:
+                                orientation: 'horizontal'
+                                size_hint_y: None
+                                height: dp(40)
+                                Label:
+                                    text: 'Is this a Loan/EMI?'
+                                    font_size: sp(16)
+                                    bold: True
+                                    color: 1, 1, 1, 1
+                                    size_hint_x: 0.7
+                                    text_size: self.width, None
+                                    halign: 'left'
+                                    valign: 'middle'
+                                ModernSwitch:
+                                    id: loan_switch
+                                    pos_hint: {'center_y': 0.5}
+                                    on_active: root.toggle_loan_details(self.active)
+                            
+                            # Loan Details Section (Initially hidden)
+                            BoxLayout:
+                                id: loan_details_card
+                                orientation: 'vertical'
+                                spacing: dp(10)
+                                size_hint_y: None
+                                height: 0
+                                opacity: 0
+                                disabled: True
+                                
+                                # Total Loan Amount
+                                BoxLayout:
+                                    orientation: 'horizontal'
+                                    size_hint_y: None
+                                    height: dp(40)
+                                    spacing: dp(10)
+                                    Label:
+                                        text: 'Total Loan Amount:'
+                                        size_hint_x: 0.5
+                                        text_size: self.width, None
+                                        halign: 'left'
+                                        valign: 'middle'
+                                        color: 1, 1, 1, 1
+                                        font_size: sp(14)
+                                    GlassyTextInput:
+                                        id: total_loan_amount
+                                        hint_text: '₹ Total Amount'
+                                        input_type: 'number'
+                                        size_hint_x: 0.5
+                                        color: 1, 1, 1, 1
+                                        bold: True
+                                
+                                # Monthly EMI
+                                BoxLayout:
+                                    orientation: 'horizontal'
+                                    size_hint_y: None
+                                    height: dp(40)
+                                    spacing: dp(10)
+                                    Label:
+                                        text: 'Monthly EMI:'
+                                        size_hint_x: 0.5
+                                        text_size: self.width, None
+                                        halign: 'left'
+                                        valign: 'middle'
+                                        color: 1, 1, 1, 1
+                                        font_size: sp(14)
+                                    GlassyTextInput:
+                                        id: monthly_emi
+                                        hint_text: '₹ Monthly Payment'
+                                        input_type: 'number'
+                                        size_hint_x: 0.5
+                                        color: 1, 1, 1, 1
+                                        bold: True
+                                
+                                # Total Installments
+                                BoxLayout:
+                                    orientation: 'horizontal'
+                                    size_hint_y: None
+                                    height: dp(40)
+                                    spacing: dp(10)
+                                    Label:
+                                        text: 'Total Installments:'
+                                        size_hint_x: 0.5
+                                        text_size: self.width, None
+                                        halign: 'left'
+                                        valign: 'middle'
+                                        color: 1, 1, 1, 1
+                                        font_size: sp(14)
+                                    GlassyTextInput:
+                                        id: total_installments
+                                        hint_text: 'Number of EMIs'
+                                        input_type: 'number'
+                                        size_hint_x: 0.5
+                                        color: 1, 1, 1, 1
+                                        bold: True
+                                
+                                # Installments Already Paid
+                                BoxLayout:
+                                    orientation: 'horizontal'
+                                    size_hint_y: None
+                                    height: dp(40)
+                                    spacing: dp(10)
+                                    Label:
+                                        text: 'Already Paid:'
+                                        size_hint_x: 0.5
+                                        text_size: self.width, None
+                                        halign: 'left'
+                                        valign: 'middle'
+                                        color: 1, 1, 1, 1
+                                        font_size: sp(14)
+                                    GlassyTextInput:
+                                        id: installments_paid
+                                        hint_text: 'Installments paid'
+                                        text: '0'
+                                        input_type: 'number'
+                                        size_hint_x: 0.5
+                                        color: 1, 1, 1, 1
+                                        bold: True
+                                
+                                # Interest Rate (Optional)
+                                BoxLayout:
+                                    orientation: 'horizontal'
+                                    size_hint_y: None
+                                    height: dp(40)
+                                    spacing: dp(10)
+                                    Label:
+                                        text: 'Interest Rate (%):'
+                                        size_hint_x: 0.5
+                                        text_size: self.width, None
+                                        halign: 'left'
+                                        valign: 'middle'
+                                        color: 1, 1, 1, 1
+                                        font_size: sp(14)
+                                    GlassyTextInput:
+                                        id: interest_rate
+                                        hint_text: 'Annual rate %'
+                                        text: '0'
+                                        input_type: 'number'
+                                        size_hint_x: 0.5
+                                        color: 1, 1, 1, 1
+                                        bold: True
+                                
+                                # Loan Summary Info
+                                BoxLayout:
+                                    orientation: 'vertical'
+                                    size_hint_y: None
+                                    height: dp(60)
+                                    padding: dp(10)
+                                    canvas.before:
+                            Color:
+                                rgba: self._color_down if self.state == 'down' else self._color_normal
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [dp(12),]
+                                        Color:
+                                            rgba: 0.2, 0.2, 0.2, 0.3
+                                        RoundedRectangle:
+                                            pos: self.pos
+                                            size: self.size
+                                            radius: [dp(8),]
+                                    Label:
+                                        id: loan_summary
+                                        text: 'Fill in the details above to see loan summary'
+                                        font_size: sp(12)
+                                        color: 1, 1, 1, 0.8
+                                        text_size: self.width, None
+                                        halign: 'center'
+                                        valign: 'middle'
+
                     # Notes Card
                     BoxLayout:
                         size_hint_y: None
@@ -404,10 +568,8 @@
                                 radius: [dp(12),]
 
 # Settings Screen
-# Settings Screen
 <SettingsScreen>:
     RelativeLayout:
-        # Add the same background image and overlay as other screens
         AsyncImage:
             source: 'new_bg.jpg'
             fit_mode: 'cover'
@@ -420,33 +582,28 @@
                     pos: self.pos
                     size: self.size
 
-        # Main content of the SettingsScreen
         BoxLayout:
             orientation: 'vertical'
             padding: dp(20)
             spacing: dp(15)
 
-            # Header with back button and title
             BoxLayout:
                 orientation: 'horizontal'
                 size_hint_y: None
                 height: dp(50)
 
-                # 1. Left Item: The Back Button (with back.png)
                 IconButton:
                     size_hint: None, None
                     size: dp(40), dp(40)
                     pos_hint: {'center_y': 0.5}
                     on_release: root.manager.current = 'dashboard'
                     canvas.before:
-                        # Draw the gray circle background
                         Color:
                             rgba: colors('#e9ecef')
                         RoundedRectangle:
                             pos: self.pos
                             size: self.size
                             radius: [self.width/2,]
-                        # Draw the back.png image on top, tinted blue
                         Color:
                             rgba: colors('#4361ee')
                         Rectangle:
@@ -454,7 +611,6 @@
                             size: self.width * 0.5, self.height * 0.5
                             pos: self.center_x - (self.width * 0.25), self.center_y - (self.height * 0.25)
 
-                # 2. Center Item: The Title
                 Label:
                     text: 'Settings'
                     font_size: sp(28)
@@ -464,18 +620,17 @@
                     halign: 'center'
                     valign: 'middle'
 
-                # 3. Right Item: An invisible spacer for balance
                 Widget:
                     size_hint_x: None
                     width: dp(40)
 
-            Widget: # Spacer
+            Widget:
                 size_hint_y: None
                 height: dp(10)
 
             ScrollView:
-                bar_width: 0 # Hide the scrollbar
-                effect_cls: 'DampedScrollEffect' # Add smooth scrolling effect
+                bar_width: 0
+                effect_cls: 'DampedScrollEffect'
                 size_hint_y: 1
                 BoxLayout:
                     orientation: 'vertical'
@@ -484,7 +639,7 @@
                     size_hint_y: None
                     height: self.minimum_height
 
-                    CardLayout: # Reminder Channels
+                    CardLayout:
                         orientation: 'vertical'
                         spacing: dp(10)
                         padding: dp(15)
@@ -499,7 +654,6 @@
                             text_size: self.width, None
                             halign: 'left'
 
-                        # WhatsApp Row
                         BoxLayout:
                             size_hint_y: None
                             height: dp(40)
@@ -511,10 +665,9 @@
                                 valign: 'middle'
                             ModernSwitch:
                                 id: whatsapp_switch
-                                size_hint_x: None # Let the switch take its own width
+                                size_hint_x: None
                                 width: self.size[0]
 
-                        # Voice Call Row
                         BoxLayout:
                             size_hint_y: None
                             height: dp(40)
@@ -529,7 +682,6 @@
                                 size_hint_x: None
                                 width: self.size[0]
 
-                        # SMS Row
                         BoxLayout:
                             size_hint_y: None
                             height: dp(40)
@@ -544,7 +696,6 @@
                                 size_hint_x: None
                                 width: self.size[0]
 
-                        # App Notifications Row
                         BoxLayout:
                             size_hint_y: None
                             height: dp(40)
@@ -559,7 +710,7 @@
                                 size_hint_x: None
                                 width: self.size[0]
 
-                    CardLayout: # Reminder Timing
+                    CardLayout:
                         orientation: 'vertical'
                         spacing: dp(10)
                         padding: dp(15)
@@ -574,10 +725,9 @@
                             text_size: self.width, None
                             halign: 'left'
 
-                        # Days Before Due Row
                         BoxLayout:
                             size_hint_y: None
-                            height: dp(40) # Set row height
+                            height: dp(40)
                             Label:
                                 text: 'Days Before Due:'
                                 text_size: self.width, None
@@ -590,14 +740,12 @@
                                 input_type: 'number'
                                 multiline: False
                                 size_hint_x: 0.4
-                                # --- Temporary Overrides ---
                                 height: dp(40)
                                 padding: self.padding[0], (self.height - self.font_size) / 2
 
-                        # Preferred Time Row
                         BoxLayout:
                             size_hint_y: None
-                            height: dp(40) # Set row height
+                            height: dp(40)
                             Label:
                                 text: 'Preferred Time:'
                                 text_size: self.width, None
@@ -609,13 +757,10 @@
                                 text: '09:00'
                                 multiline: False
                                 size_hint_x: 0.4
-                                # --- Temporary Overrides ---
                                 height: dp(40)
                                 padding: self.padding[0], (self.height - self.font_size) / 2
 
-                    
-
-                    CardLayout: # Test Reminders section
+                    CardLayout:
                         orientation: 'vertical'
                         spacing: dp(15)
 
@@ -629,20 +774,18 @@
                             text_size: self.width, None
                             halign: 'left'
 
-                        # In billsreminder.kv, inside the <SettingsScreen> rule
                         BoxLayout:
                             orientation: 'horizontal'
                             spacing: dp(10)
                             size_hint_y: None
                             height: dp(50)
 
-                            # --- WhatsApp Button ---
                             IconLabelButton:
                                 on_release: root.test_reminder('whatsapp')
                                 size_hint_x: 0.5
                                 spacing: dp(10)
 
-                                Widget: # Left spacer
+                                Widget:
                                 RoundedImage:
                                     source: 'whatsapp_icon.png'
                                     size_hint: None, None
@@ -655,15 +798,14 @@
                                     size_hint_x: None
                                     width: self.texture_size[0]
                                     pos_hint: {'center_y': 0.5}
-                                Widget: # Right spacer
+                                Widget:
 
-                            # --- Call Button ---
                             IconLabelButton:
                                 on_release: root.test_reminder('call')
                                 size_hint_x: 0.5
                                 spacing: dp(10)
 
-                                Widget: # Left spacer
+                                Widget:
                                 RoundedImage:
                                     source: 'call_icon.png'
                                     size_hint: None, None
@@ -676,15 +818,13 @@
                                     size_hint_x: None
                                     width: self.texture_size[0]
                                     pos_hint: {'center_y': 0.5}
-                                Widget: # Right spacer
+                                Widget:
 
-                    GlassyButton: # SAVE SETTINGS button
+                    GlassyButton:
                         text: 'SAVE SETTINGS'
                         bold: True
                         font_size: sp(16)
                         on_release: root.save_settings()
-                        
-                        # --- Temporary Overrides ---
                         size_hint_x: 1
                         size_hint_y: None
                         height: dp(50)
@@ -696,23 +836,14 @@
                                 size: self.size
                                 radius: [dp(12),]
 
-                    GlassyButton: # LOGOUT button
+                    GlassyButton:
                         text: 'LOGOUT'
                         bold: True
                         font_size: sp(16)
                         on_release: root.logout()
-
-                        # --- Temporary Overrides ---
                         size_hint_x: 1
                         size_hint_y: None
                         height: dp(50)
-                        # Special styling for a destructive action button
                         _color_normal: colors('#e63946')
                         _color_down: [c * 0.8 for c in colors('#e63946')]
                         canvas.before:
-                            Color:
-                                rgba: self._color_down if self.state == 'down' else self._color_normal
-                            RoundedRectangle:
-                                pos: self.pos
-                                size: self.size
-                                radius: [dp(12),]
