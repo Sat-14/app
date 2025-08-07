@@ -2,12 +2,11 @@
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from models import db, Bill, User, ReminderSettings
 from reminder_service import generate_reminder_message, send_whatsapp_reminder, send_voice_reminder
 import pytz
 import logging
-
-# We will not import 'app' in this file at all to avoid circular imports.
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -25,13 +24,10 @@ def start_scheduler(app):
 
     def check_and_send_reminders():
         """This job runs every minute to check for upcoming reminders."""
-        # This function can now use the 'app' variable from the outer scope
         with app.app_context():
             current_time = datetime.now().strftime('%H:%M')
             logger.info(f"[REMINDER CHECK] Starting reminder check at {current_time}")
             print("Scheduler: Checking for due bills...")
-            
-            # This loop runs every minute
             
             users = User.query.filter(User.phone_number.isnot(None)).all()
             logger.info(f"[REMINDER CHECK] Found {len(users)} users with phone numbers")
@@ -47,8 +43,7 @@ def start_scheduler(app):
                 logger.debug(f"[USER CHECK] User {user.id} preferred time: {settings.preferred_time}")
                 logger.debug(f"[USER CHECK] WhatsApp enabled: {settings.whatsapp_enabled}, Call enabled: {settings.call_enabled}")
 
-                # The key change is here: The reminder logic is now executed ONLY
-                # at the exact minute of the user's preferred time.
+                # Check if current time matches user's preferred time
                 if current_time == settings.preferred_time:
                     logger.info(f"[TIME MATCH] Current time {current_time} matches user {user.id} preferred time")
                     
@@ -61,20 +56,14 @@ def start_scheduler(app):
                     
                     for bill in bills_due:
                         logger.debug(f"[BILL PROCESS] Processing bill: {bill.id} - {bill.name}")
+                        logger.debug(f"[BILL PROCESS] Bill frequency: {bill.frequency}")
                         logger.debug(f"[BILL PROCESS] Bill due date: {bill.due_date}, Amount: {bill.amount}")
                         
-                        # Calculate days left using only the date portion
-                        current_date = datetime.now().date()
-                        bill_due_date = bill.due_date.date()
-                        days_left = (bill_due_date - current_date).days
+                        # Check if reminder should be sent based on frequency
+                        should_send_reminder = check_reminder_schedule(bill, settings.days_before)
                         
-                        logger.debug(f"[BILL PROCESS] Days left for bill {bill.id}: {days_left} days")
-                        logger.debug(f"[BILL PROCESS] Current date: {current_date}, Bill due date: {bill_due_date}")
-                        
-                        # Check if the number of days left is in our reminder list
-                        # This will trigger a message on the 3rd, 2nd, 1st, and 0th day before the deadline.
-                        if days_left in [3, 2, 1, 0]:
-                            logger.info(f"[REMINDER TRIGGER] Bill {bill.id} qualifies for reminder (days_left: {days_left})")
+                        if should_send_reminder:
+                            logger.info(f"[REMINDER TRIGGER] Bill {bill.id} qualifies for reminder")
                             
                             bill_data = {
                                 'name': bill.name,
@@ -91,6 +80,8 @@ def start_scheduler(app):
                                 try:
                                     send_whatsapp_reminder(user.phone_number, message)
                                     logger.info(f"[WHATSAPP] Successfully sent WhatsApp reminder for bill {bill.id}")
+                                    # Update last reminder sent date
+                                    update_last_reminder_sent(bill)
                                 except Exception as e:
                                     logger.error(f"[WHATSAPP ERROR] Failed to send WhatsApp reminder for bill {bill.id}: {str(e)}")
                             else:
@@ -101,20 +92,202 @@ def start_scheduler(app):
                                 try:
                                     send_voice_reminder(user.phone_number, message)
                                     logger.info(f"[VOICE CALL] Successfully sent voice reminder for bill {bill.id}")
+                                    # Update last reminder sent date
+                                    update_last_reminder_sent(bill)
                                 except Exception as e:
                                     logger.error(f"[VOICE CALL ERROR] Failed to send voice reminder for bill {bill.id}: {str(e)}")
                             else:
                                 logger.debug(f"[VOICE CALL] Skipped - Voice call disabled (settings: {settings.call_enabled}, bill: {bill.enable_call})")
                         else:
-                            logger.debug(f"[BILL SKIP] Bill {bill.id} not due for reminder (days_left: {days_left})")
+                            logger.debug(f"[BILL SKIP] Bill {bill.id} not due for reminder based on frequency")
                 else:
                     logger.debug(f"[TIME SKIP] Current time {current_time} does not match user {user.id} preferred time {settings.preferred_time}")
             
             logger.info(f"[REMINDER CHECK] Completed reminder check at {datetime.now().strftime('%H:%M:%S')}")
 
+    def check_reminder_schedule(bill, days_before):
+        """
+        Check if a reminder should be sent based on bill frequency and schedule.
+        
+        Args:
+            bill: The Bill object
+            days_before: Number of days before due date to send reminder
+        
+        Returns:
+            bool: True if reminder should be sent, False otherwise
+        """
+        current_date = datetime.now().date()
+        bill_due_date = bill.due_date.date() if hasattr(bill.due_date, 'date') else bill.due_date
+        
+        # Calculate days until due
+        days_left = (bill_due_date - current_date).days
+        
+        logger.debug(f"[SCHEDULE CHECK] Bill {bill.id} - Frequency: {bill.frequency}, Days left: {days_left}")
+        
+        # Get or create last reminder sent info from notes
+        last_reminder_date = get_last_reminder_date(bill)
+        
+        if bill.frequency == 'once':
+            # For one-time bills, send reminders at configured intervals before due date
+            if days_left in [days_before, 2, 1, 0] and days_left >= 0:
+                # Check if we already sent a reminder today
+                if last_reminder_date != current_date:
+                    logger.debug(f"[SCHEDULE CHECK] One-time bill {bill.id} - Sending reminder (days_left: {days_left})")
+                    return True
+                    
+        elif bill.frequency == 'weekly':
+            # For weekly bills, send reminder if due within next 7 days
+            if 0 <= days_left <= 3:
+                if last_reminder_date != current_date:
+                    logger.debug(f"[SCHEDULE CHECK] Weekly bill {bill.id} - Sending reminder")
+                    return True
+                    
+        elif bill.frequency == 'monthly':
+            # For monthly bills, send reminders based on days_before setting
+            if days_left in [days_before, 2, 1, 0] and days_left >= 0:
+                if last_reminder_date != current_date:
+                    logger.debug(f"[SCHEDULE CHECK] Monthly bill {bill.id} - Sending reminder (days_left: {days_left})")
+                    return True
+                    
+        elif bill.frequency == 'quarterly':
+            # For quarterly bills, send reminders starting a week before
+            if days_left in [7, 5, 3, 2, 1, 0] and days_left >= 0:
+                if last_reminder_date != current_date:
+                    logger.debug(f"[SCHEDULE CHECK] Quarterly bill {bill.id} - Sending reminder (days_left: {days_left})")
+                    return True
+                    
+        elif bill.frequency == 'yearly':
+            # For yearly bills, send reminders starting 2 weeks before
+            if days_left in [14, 10, 7, 5, 3, 2, 1, 0] and days_left >= 0:
+                if last_reminder_date != current_date:
+                    logger.debug(f"[SCHEDULE CHECK] Yearly bill {bill.id} - Sending reminder (days_left: {days_left})")
+                    return True
+        
+        return False
+
+    def get_last_reminder_date(bill):
+        """
+        Get the date when the last reminder was sent for this bill.
+        Stored in bill notes as JSON.
+        """
+        import json
+        try:
+            if bill.notes:
+                notes_data = json.loads(bill.notes)
+                if isinstance(notes_data, dict) and 'last_reminder_date' in notes_data:
+                    return datetime.strptime(notes_data['last_reminder_date'], '%Y-%m-%d').date()
+        except (json.JSONDecodeError, ValueError, KeyError) as e:
+            logger.debug(f"[REMINDER DATE] Could not parse last reminder date for bill {bill.id}: {str(e)}")
+        return None
+
+    def update_last_reminder_sent(bill):
+        """
+        Update the last reminder sent date for the bill.
+        """
+        import json
+        try:
+            notes_data = {}
+            if bill.notes:
+                try:
+                    notes_data = json.loads(bill.notes)
+                    if not isinstance(notes_data, dict):
+                        notes_data = {'original_notes': bill.notes}
+                except json.JSONDecodeError:
+                    notes_data = {'original_notes': bill.notes}
+            
+            notes_data['last_reminder_date'] = datetime.now().strftime('%Y-%m-%d')
+            bill.notes = json.dumps(notes_data)
+            db.session.commit()
+            logger.debug(f"[REMINDER DATE] Updated last reminder date for bill {bill.id}")
+        except Exception as e:
+            logger.error(f"[REMINDER DATE ERROR] Failed to update last reminder date for bill {bill.id}: {str(e)}")
+
+    def handle_recurring_bills():
+        """
+        Check and create new bill instances for recurring bills.
+        This runs daily to handle recurring bill generation.
+        """
+        with app.app_context():
+            logger.info("[RECURRING CHECK] Starting recurring bills check")
+            current_date = datetime.now().date()
+            
+            # Get all paid bills that have recurring frequencies
+            recurring_bills = Bill.query.filter(
+                Bill.is_paid == True,
+                Bill.frequency.in_(['weekly', 'monthly', 'quarterly', 'yearly'])
+            ).all()
+            
+            logger.info(f"[RECURRING CHECK] Found {len(recurring_bills)} paid recurring bills")
+            
+            for bill in recurring_bills:
+                next_due_date = calculate_next_due_date(bill)
+                
+                if next_due_date:
+                    # Check if a bill already exists for this next due date
+                    existing_bill = Bill.query.filter(
+                        Bill.user_id == bill.user_id,
+                        Bill.name == bill.name,
+                        Bill.due_date == next_due_date,
+                        Bill.is_paid == False
+                    ).first()
+                    
+                    if not existing_bill and next_due_date >= current_date:
+                        # Create new bill instance for the next period
+                        new_bill = Bill(
+                            user_id=bill.user_id,
+                            name=bill.name,
+                            amount=bill.amount,
+                            due_date=datetime.combine(next_due_date, datetime.min.time()),
+                            category=bill.category,
+                            frequency=bill.frequency,
+                            is_paid=False,
+                            notes=f"Auto-generated from recurring bill",
+                            enable_whatsapp=bill.enable_whatsapp,
+                            enable_call=bill.enable_call,
+                            enable_sms=bill.enable_sms,
+                            enable_local_notification=bill.enable_local_notification
+                        )
+                        
+                        db.session.add(new_bill)
+                        logger.info(f"[RECURRING CHECK] Created new recurring bill for {bill.name} due on {next_due_date}")
+            
+            try:
+                db.session.commit()
+                logger.info("[RECURRING CHECK] Completed recurring bills check")
+            except Exception as e:
+                logger.error(f"[RECURRING CHECK ERROR] Failed to save recurring bills: {str(e)}")
+                db.session.rollback()
+
+    def calculate_next_due_date(bill):
+        """
+        Calculate the next due date based on bill frequency.
+        """
+        if not bill.due_date:
+            return None
+            
+        bill_due_date = bill.due_date.date() if hasattr(bill.due_date, 'date') else bill.due_date
+        current_date = datetime.now().date()
+        
+        if bill.frequency == 'weekly':
+            next_date = bill_due_date + timedelta(weeks=1)
+        elif bill.frequency == 'monthly':
+            next_date = bill_due_date + relativedelta(months=1)
+        elif bill.frequency == 'quarterly':
+            next_date = bill_due_date + relativedelta(months=3)
+        elif bill.frequency == 'yearly':
+            next_date = bill_due_date + relativedelta(years=1)
+        else:
+            return None
+        
+        # Only return if the next date is in the future
+        if next_date > current_date:
+            logger.debug(f"[NEXT DUE] Calculated next due date for {bill.name}: {next_date}")
+            return next_date
+        
+        return None
+
     def check_overdue_bills():
         """This job runs daily to check for overdue bills."""
-        # This function can also use the 'app' variable
         with app.app_context():
             logger.info("[OVERDUE CHECK] Starting overdue bills check")
             print("Scheduler: Checking for overdue bills...")
@@ -142,6 +315,7 @@ def start_scheduler(app):
                 days_overdue = (current_datetime - bill.due_date).days
                 logger.debug(f"[OVERDUE PROCESS] Bill {bill.id} is {days_overdue} days overdue")
                 
+                # Only send overdue reminders for bills that were due recently
                 if days_overdue <= 7:
                     message = f"URGENT: Your {bill.name} payment of ₹{bill.amount} is {days_overdue} days overdue. Please pay immediately to avoid late fees."
                     logger.info(f"[OVERDUE ALERT] Sending overdue alert for bill {bill.id} ({days_overdue} days overdue)")
@@ -167,6 +341,16 @@ def start_scheduler(app):
         trigger="cron",
         minute="*",
         id='reminder_checker',
+        replace_existing=True
+    )
+    
+    logger.info("[SCHEDULER CONFIG] Adding recurring_bills_handler job (runs daily at 00:00)")
+    scheduler.add_job(
+        func=handle_recurring_bills,
+        trigger="cron",
+        hour=0,
+        minute=0,
+        id='recurring_bills_handler',
         replace_existing=True
     )
     
