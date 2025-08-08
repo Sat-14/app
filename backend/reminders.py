@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, User, ReminderSettings, Bill
-from reminder_service import generate_reminder_message, send_whatsapp_reminder, send_voice_reminder
+from reminder_service import generate_reminder_message, send_whatsapp_reminder, send_voice_call_reminder
 from elevenlabs_service import generate_voice_audio
 from datetime import datetime
 import logging
