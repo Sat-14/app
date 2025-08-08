@@ -315,4 +315,5 @@ def get_loans_summary():
             'total_completed_loans': len(completed_loans),
             'total_debt': total_debt,
             'total_monthly_payment': total_monthly_payment
-        
+        }}
+    )       
