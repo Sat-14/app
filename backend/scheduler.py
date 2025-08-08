@@ -4,7 +4,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from models import db, Bill, User, ReminderSettings
-from reminder_service import generate_reminder_message, send_whatsapp_reminder, send_voice_reminder
+from reminder_service import generate_reminder_message, send_whatsapp_reminder, send_voice_call_reminder
 import pytz
 import logging
 
