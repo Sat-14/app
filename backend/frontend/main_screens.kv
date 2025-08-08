@@ -385,7 +385,7 @@
                                 size_hint_y: None
                                 height: 0
                                 opacity: 0
-                                disabled: True
+                                disabled: False
                                 
                                 # Total Loan Amount
                                 BoxLayout:
@@ -506,12 +506,6 @@
                                     height: dp(60)
                                     padding: dp(10)
                                     canvas.before:
-                            Color:
-                                rgba: self._color_down if self.state == 'down' else self._color_normal
-                            RoundedRectangle:
-                                pos: self.pos
-                                size: self.size
-                                radius: [dp(12),]
                                         Color:
                                             rgba: 0.2, 0.2, 0.2, 0.3
                                         RoundedRectangle:
