@@ -1,7 +1,10 @@
+# config.py - Updated to include ENCRYPTION_KEY and OPENAI_API_KEY
+
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
 
+# This will now work correctly because it will find your newly renamed .env file
 load_dotenv()
 
 class Config:
@@ -20,13 +23,17 @@ class Config:
     TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
     TWILIO_WHATSAPP_FROM = os.getenv('TWILIO_WHATSAPP_FROM', 'whatsapp:+14155238886')
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+    # Add the missing OpenAI API Key
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     
-    # AWS S3 (for receipt storage)
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_S3_BUCKET = os.getenv('AWS_S3_BUCKET', 'bills-reminder-receipts')
-    AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+    # Local Storage Settings
+    UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads/receipts')
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
     
     # ElevenLabs (alternative voice service)
     ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY')
     ELEVENLABS_VOICE_ID = os.getenv('ELEVENLABS_VOICE_ID', 'rachel')
+    
+    # Add the missing ENCRYPTION_KEY
+    ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY', 'JxQylR2_KAp1GGEvqANw2c6YGF1X3cZNB0lG0Vwbb5w=')

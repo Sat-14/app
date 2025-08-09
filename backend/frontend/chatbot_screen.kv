@@ -1,0 +1,192 @@
+# chatbot_screen.kv - Chatbot screen layout
+
+<ChatbotScreen>:
+    name: 'chatbot'
+    
+    RelativeLayout:
+        # Background
+        AsyncImage:
+            source: 'new_bg.jpg'
+            fit_mode: 'cover'
+        
+        BoxLayout:
+            canvas.before:
+                Color:
+                    rgba: 0, 0, 0, 0.4
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+        
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 0
+            
+            # Header
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(80)
+                padding: dp(20), dp(15)
+                spacing: dp(15)
+                canvas.before:
+                    Color:
+                        rgba: 0.1, 0.1, 0.1, 0.8
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                
+                # Back button
+                IconButton:
+                    size_hint: None, None
+                    size: dp(40), dp(40)
+                    pos_hint: {'center_y': 0.5}
+                    on_release: root.manager.current = 'dashboard'
+                    canvas.before:
+                        Color:
+                            rgba: colors('#e9ecef')
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [self.width/2,]
+                        Color:
+                            rgba: colors('#4361ee')
+                        Rectangle:
+                            source: 'back.png'
+                            size: self.width * 0.5, self.height * 0.5
+                            pos: self.center_x - (self.width * 0.25), self.center_y - (self.height * 0.25)
+                
+                # Title
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(10), 0
+                    
+                    Label:
+                        text: 'AI Assistant'
+                        font_size: sp(18)
+                        bold: True
+                        color: 1, 1, 1, 1
+                        text_size: self.width, None
+                        halign: 'left'
+                        valign: 'middle'
+                        size_hint_y: 0.6
+                    
+                    Label:
+                        id: ai_provider_label
+                        text: 'AI: Gemini'
+                        font_size: sp(11)
+                        color: 0.7, 0.7, 0.7, 1
+                        text_size: self.width, None
+                        halign: 'left'
+                        valign: 'middle'
+                        size_hint_y: 0.4
+                
+                # AI Switch button
+                IconButton:
+                    size_hint: None, None
+                    size: dp(40), dp(40)
+                    pos_hint: {'center_y': 0.5}
+                    on_release: root.switch_ai_provider()
+                    canvas.before:
+                        Color:
+                            rgba: 0.2, 0.2, 0.2, 0.8
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(8),]
+                    Label:
+                        text: '🤖'
+                        font_size: sp(20)
+                        center: self.parent.center
+                
+                # Clear chat button
+                IconButton:
+                    size_hint: None, None
+                    size: dp(40), dp(40)
+                    pos_hint: {'center_y': 0.5}
+                    on_release: root.clear_chat()
+                    canvas.before:
+                        Color:
+                            rgba: 0.2, 0.2, 0.2, 0.8
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(8),]
+                    Label:
+                        text: '🗑'
+                        font_size: sp(18)
+                        center: self.parent.center
+            
+            # Chat area
+            ScrollView:
+                id: chat_scroll
+                bar_width: 0
+                effect_cls: 'DampedScrollEffect'
+                
+                BoxLayout:
+                    id: chat_container
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    spacing: dp(15)
+                    padding: dp(20), dp(95), dp(20), dp(15)
+            
+            # Suggestions area
+            ScrollView:
+                size_hint_y: None
+                height: dp(50)
+                bar_width: 0
+                do_scroll_y: False
+                
+                BoxLayout:
+                    id: suggestions_box
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: dp(35)
+                    spacing: dp(10)
+                    padding: dp(10), 0
+                    size_hint_x: None
+                    width: self.minimum_width
+            
+            # Input area
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(70)
+                padding: dp(15)
+                spacing: dp(12)
+                canvas.before:
+                    Color:
+                        rgba: 0.15, 0.15, 0.15, 0.9
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                
+                # Message input
+                TextInput:
+                    id: message_input
+                    hint_text: 'Type your message...'
+                    multiline: False
+                    background_color: 0.2, 0.2, 0.2, 1
+                    foreground_color: 1, 1, 1, 1
+                    cursor_color: 1, 1, 1, 1
+                    padding: dp(10)
+                    font_size: sp(14)
+                    on_text_validate: root.send_message()
+                
+                # Send button
+                Button:
+                    text: 'Send'
+                    size_hint_x: None
+                    width: dp(90)
+                    height: dp(45)
+                    background_color: 0.26, 0.38, 0.89, 1
+                    bold: True
+                    font_size: sp(14)
+                    on_release: root.send_message()
+                    canvas.before:
+                        Color:
+                            rgba: self.background_color
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(8),]
