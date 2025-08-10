@@ -1,192 +1,196 @@
-# chatbot_screen.kv - Chatbot screen layout
+# chatbot_screen.kv - Chatbot screen layout ( Redesigned for WhatsApp-like clean, professional UI)
+
+<SuggestionButton@Button>:
+    # This is a custom button style for the suggestion chips.
+    size_hint: None, None
+    # The width is now dynamic and will adjust to the text length.
+    width: self.texture_size[0] + dp(24)
+    height: dp(35)
+    # Make the default button background transparent so we can draw our own.
+    background_normal: ''
+    background_down: ''
+    background_color: 0, 0, 0, 0
+    # Use a dark, easily readable color for the text.
+    color: 0.1, 0.1, 0.1, 1
+    bold: True
+    font_size: sp(13)
+    # Draw the modern "pill" shape using a RoundedRectangle.
+    canvas.before:
+        Color:
+            # Light grey background for high contrast.
+            rgba: (0.9, 0.9, 0.9, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            # Fully rounded corners create the pill shape.
+            radius: [self.height / 2]
 
 <ChatbotScreen>:
     name: 'chatbot'
-    
-    RelativeLayout:
-        # Background
-        AsyncImage:
-            source: 'new_bg.jpg'
-            fit_mode: 'cover'
-        
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        # Header
         BoxLayout:
+            size_hint_y: None
+            height: dp(60)
+            padding: dp(8)
+            spacing: dp(8)
             canvas.before:
                 Color:
-                    rgba: 0, 0, 0, 0.4
+                    rgba: 0.027, 0.369, 0.329, 1  # WhatsApp teal green #075E54
                 Rectangle:
                     pos: self.pos
                     size: self.size
-        
-        BoxLayout:
-            orientation: 'vertical'
-            spacing: 0
-            
-            # Header
+
+            Button:
+                text: '<'
+                font_size: sp(24)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                pos_hint: {'center_y': 0.5}
+                background_color: 0, 0, 0, 0
+                on_release: root.manager.current = 'dashboard'
+
             BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: None
-                height: dp(80)
-                padding: dp(20), dp(15)
-                spacing: dp(15)
-                canvas.before:
-                    Color:
-                        rgba: 0.1, 0.1, 0.1, 0.8
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                
-                # Back button
-                IconButton:
-                    size_hint: None, None
-                    size: dp(40), dp(40)
-                    pos_hint: {'center_y': 0.5}
-                    on_release: root.manager.current = 'dashboard'
-                    canvas.before:
-                        Color:
-                            rgba: colors('#e9ecef')
-                        RoundedRectangle:
-                            pos: self.pos
-                            size: self.size
-                            radius: [self.width/2,]
-                        Color:
-                            rgba: colors('#4361ee')
-                        Rectangle:
-                            source: 'back.png'
-                            size: self.width * 0.5, self.height * 0.5
-                            pos: self.center_x - (self.width * 0.25), self.center_y - (self.height * 0.25)
-                
-                # Title
-                BoxLayout:
-                    orientation: 'vertical'
-                    padding: dp(10), 0
-                    
-                    Label:
-                        text: 'AI Assistant'
-                        font_size: sp(18)
-                        bold: True
-                        color: 1, 1, 1, 1
-                        text_size: self.width, None
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: 0.6
-                    
-                    Label:
-                        id: ai_provider_label
-                        text: 'AI: Gemini'
-                        font_size: sp(11)
-                        color: 0.7, 0.7, 0.7, 1
-                        text_size: self.width, None
-                        halign: 'left'
-                        valign: 'middle'
-                        size_hint_y: 0.4
-                
-                # AI Switch button
-                IconButton:
-                    size_hint: None, None
-                    size: dp(40), dp(40)
-                    pos_hint: {'center_y': 0.5}
-                    on_release: root.switch_ai_provider()
-                    canvas.before:
-                        Color:
-                            rgba: 0.2, 0.2, 0.2, 0.8
-                        RoundedRectangle:
-                            pos: self.pos
-                            size: self.size
-                            radius: [dp(8),]
-                    Label:
-                        text: '🤖'
-                        font_size: sp(20)
-                        center: self.parent.center
-                
-                # Clear chat button
-                IconButton:
-                    size_hint: None, None
-                    size: dp(40), dp(40)
-                    pos_hint: {'center_y': 0.5}
-                    on_release: root.clear_chat()
-                    canvas.before:
-                        Color:
-                            rgba: 0.2, 0.2, 0.2, 0.8
-                        RoundedRectangle:
-                            pos: self.pos
-                            size: self.size
-                            radius: [dp(8),]
-                    Label:
-                        text: '🗑'
-                        font_size: sp(18)
-                        center: self.parent.center
-            
-            # Chat area
-            ScrollView:
-                id: chat_scroll
-                bar_width: 0
-                effect_cls: 'DampedScrollEffect'
-                
-                BoxLayout:
-                    id: chat_container
-                    orientation: 'vertical'
-                    size_hint_y: None
-                    height: self.minimum_height
-                    spacing: dp(15)
-                    padding: dp(20), dp(95), dp(20), dp(15)
-            
-            # Suggestions area
-            ScrollView:
-                size_hint_y: None
-                height: dp(50)
-                bar_width: 0
-                do_scroll_y: False
-                
-                BoxLayout:
-                    id: suggestions_box
-                    orientation: 'horizontal'
-                    size_hint_y: None
-                    height: dp(35)
-                    spacing: dp(10)
-                    padding: dp(10), 0
-                    size_hint_x: None
-                    width: self.minimum_width
-            
-            # Input area
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: None
-                height: dp(70)
-                padding: dp(15)
-                spacing: dp(12)
-                canvas.before:
-                    Color:
-                        rgba: 0.15, 0.15, 0.15, 0.9
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                
-                # Message input
-                TextInput:
-                    id: message_input
-                    hint_text: 'Type your message...'
-                    multiline: False
-                    background_color: 0.2, 0.2, 0.2, 1
-                    foreground_color: 1, 1, 1, 1
-                    cursor_color: 1, 1, 1, 1
-                    padding: dp(10)
-                    font_size: sp(14)
-                    on_text_validate: root.send_message()
-                
-                # Send button
-                Button:
-                    text: 'Send'
-                    size_hint_x: None
-                    width: dp(90)
-                    height: dp(45)
-                    background_color: 0.26, 0.38, 0.89, 1
+                orientation: 'vertical'
+                size_hint_x: 1
+                Label:
+                    text: 'AI Assistant'
+                    font_size: sp(18)
                     bold: True
-                    font_size: sp(14)
-                    on_release: root.send_message()
-                    canvas.before:
-                        Color:
-                            rgba: self.background_color
-                        RoundedRectangle:
-                            pos: self.pos
-                            size: self.size
-                            radius: [dp(8),]
+                    color: 1, 1, 1, 1
+                    text_size: self.width, None
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: 0.6
+                Label:
+                    id: ai_provider_label
+                    text: 'AI: Gemini'
+                    font_size: sp(11)
+                    color: 0.9, 0.9, 0.9, 1
+                    text_size: self.width, None
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint_y: 0.4
+
+            Button:
+                text: '🤖'
+                font_name: 'Arial'
+                font_size: sp(20)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                pos_hint: {'center_y': 0.5}
+                background_color: 0, 0, 0, 0
+                on_release: root.switch_ai_provider()
+
+            Button:
+                text: '🗑'
+                font_name: 'Arial'
+                font_size: sp(18)
+                size_hint: None, None
+                size: dp(40), dp(40)
+                pos_hint: {'center_y': 0.5}
+                background_color: 0, 0, 0, 0
+                on_release: root.clear_chat()
+
+        # Chat area
+        ScrollView:
+            id: chat_scroll
+            bar_width: 0
+            effect_cls: 'DampedScrollEffect'
+            canvas.before:
+                Color:
+                    rgba: 0.9, 0.87, 0.83, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            BoxLayout:
+                id: chat_container
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(5)
+                padding: dp(10)
+
+        # Suggestions Area
+        ScrollView:
+            size_hint_y: None
+            height: dp(55) if suggestions_box.children else 0
+            bar_width: 0
+            do_scroll_y: False
+            BoxLayout:
+                id: suggestions_box
+                orientation: 'horizontal'
+                size_hint: None, None
+                width: self.minimum_width
+                height: dp(55)
+                spacing: dp(8)
+                padding: dp(10)
+
+        # Input area
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(60)
+            padding: dp(8)
+            spacing: dp(8)
+            canvas.before:
+                Color:
+                    rgba: 0.9, 0.87, 0.83, 1 # Match chat background
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            TextInput:
+                id: message_input
+                hint_text: 'Type a message'
+                multiline: True
+                # MODIFIED: Text color is now black for visibility
+                foreground_color: 0, 0, 0, 1
+                # MODIFIED: Cursor color is now opaque black
+                cursor_color: 1, 0.4, 0.7, 1
+                font_name: 'Arial'
+                padding: dp(12)
+                font_size: sp(15)
+                size_hint: 1, None
+                height: max(dp(44), self.minimum_height)
+                pos_hint: {'center_y': 0.5}
+                background_normal: ''
+                background_active: ''
+                cursor_blink: True    
+                canvas.before:
+                    Color:
+                        # This white color is the background
+                        rgba: 1, 1, 1, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(22)]
+                    Color:
+                        rgba: 0.7, 0.7, 0.7, 1
+                    Line:
+                        width: 1.2
+                        rounded_rectangle: (self.x, self.y, self.width, self.height, dp(22))
+
+            Button:
+                text: 'Send'
+                font_name: 'Arial'
+                bold: True
+                font_size: sp(15)
+                size_hint: None, None
+                size: dp(60), dp(44)
+                color: 1, 1, 1, 1
+                background_normal: ''
+                background_down: ''
+                background_color: 0.027, 0.369, 0.329, 1
+                on_release: root.send_message()
+                pos_hint: {'center_y': 0.5}
+                canvas.before:
+                    Color:
+                        rgba: self.background_color
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(22)]

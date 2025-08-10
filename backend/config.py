@@ -36,4 +36,4 @@ class Config:
     ELEVENLABS_VOICE_ID = os.getenv('ELEVENLABS_VOICE_ID', 'rachel')
     
     # Add the missing ENCRYPTION_KEY
-    ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY', 'JxQylR2_KAp1GGEvqANw2c6YGF1X3cZNB0lG0Vwbb5w=')
+    ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY', 'P-etfMDHQ0ZdbnSiW4o8DuKtk9t-50FiWv5z3nUtFjg=')

@@ -7,6 +7,7 @@ from models import db, Bill, User, ReminderSettings
 from reminder_service import generate_reminder_message, send_whatsapp_reminder, send_voice_call_reminder
 import pytz
 import logging
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -43,17 +44,13 @@ def start_scheduler(app):
                 logger.debug(f"[USER CHECK] User {user.id} preferred time: {settings.preferred_time}")
                 logger.debug(f"[USER CHECK] WhatsApp enabled: {settings.whatsapp_enabled}, Call enabled: {settings.call_enabled}")
 
-                # Check if current time matches user's preferred time
-                # Check if current time is within window of user's preferred time
-                current_hour, current_minute = map(int, current_time.split(':'))
-                pref_hour, pref_minute = map(int, settings.preferred_time.split(':'))
-                
-                current_minutes = current_hour * 60 + current_minute
-                pref_minutes = pref_hour * 60 + pref_minute
-                
-                # Allow 30 minute window after preferred time
-                if pref_minutes <= current_minutes <= pref_minutes + 30:
-                    logger.info(f"[TIME MATCH] Within reminder window - Current: {current_time}, Preferred: {settings.preferred_time}")
+                if not settings.preferred_time:
+                    settings.preferred_time = '09:00'
+                    logger.warning(f"[TIME FIX] preferred_time was empty for user {user.id}, setting to default '09:00'")
+
+                # MODIFIED LOGIC: Check if current time exactly matches the user's preferred time.
+                if settings.preferred_time == current_time:
+                    logger.info(f"[TIME MATCH] Exact match found - Current: {current_time}, Preferred: {settings.preferred_time} for user {user.id}")
                     
                     bills_due = Bill.query.filter(
                         Bill.user_id == user.id,
@@ -67,10 +64,8 @@ def start_scheduler(app):
                         logger.debug(f"[BILL PROCESS] Bill frequency: {bill.frequency}")
                         logger.debug(f"[BILL PROCESS] Bill due date: {bill.due_date}, Amount: {bill.amount}")
                         
-                        # Check if reminder should be sent based on frequency
-                        should_send_reminder = check_reminder_schedule(bill, settings.days_before)
-                        
-                        if should_send_reminder:
+                        # Check if reminder should be sent based on new unified schedule
+                        if check_reminder_schedule(bill):
                             logger.info(f"[REMINDER TRIGGER] Bill {bill.id} qualifies for reminder")
                             
                             bill_data = {
@@ -88,7 +83,6 @@ def start_scheduler(app):
                                 try:
                                     send_whatsapp_reminder(user.phone_number, message)
                                     logger.info(f"[WHATSAPP] Successfully sent WhatsApp reminder for bill {bill.id}")
-                                    # Update last reminder sent date
                                     update_last_reminder_sent(bill)
                                 except Exception as e:
                                     logger.error(f"[WHATSAPP ERROR] Failed to send WhatsApp reminder for bill {bill.id}: {str(e)}")
@@ -98,10 +92,12 @@ def start_scheduler(app):
                             if settings.call_enabled and bill.enable_call:
                                 logger.info(f"[VOICE CALL] Sending voice reminder to {user.phone_number} for bill {bill.id}")
                                 try:
-                                    (user.phone_number, message)
-                                    logger.info(f"[VOICE CALL] Successfully sent voice reminder for bill {bill.id}")
-                                    # Update last reminder sent date
-                                    update_last_reminder_sent(bill)
+                                    result = send_voice_call_reminder(user.phone_number, message)
+                                    if result and result.get('success'):
+                                        logger.info(f"[VOICE CALL] Successfully sent voice reminder for bill {bill.id}")
+                                        update_last_reminder_sent(bill)
+                                    else:
+                                        logger.error(f"[VOICE CALL ERROR] Failed to send voice reminder for bill {bill.id}: {result.get('error', 'Unknown error')}")
                                 except Exception as e:
                                     logger.error(f"[VOICE CALL ERROR] Failed to send voice reminder for bill {bill.id}: {str(e)}")
                             else:
@@ -113,64 +109,26 @@ def start_scheduler(app):
             
             logger.info(f"[REMINDER CHECK] Completed reminder check at {datetime.now().strftime('%H:%M:%S')}")
 
-    def check_reminder_schedule(bill, days_before):
+    # NEW FUNCTION: Simplified reminder schedule check
+    def check_reminder_schedule(bill):
         """
-        Check if a reminder should be sent based on bill frequency and schedule.
-        
-        Args:
-            bill: The Bill object
-            days_before: Number of days before due date to send reminder
-        
-        Returns:
-            bool: True if reminder should be sent, False otherwise
+        Check if a reminder should be sent based on the due date.
+        This simplified logic applies to all recurring bills.
         """
         current_date = datetime.now().date()
-        bill_due_date = bill.due_date.date() if hasattr(bill.due_date, 'date') else bill.due_date
+        bill_due_date = bill.due_date.date()
         
-        # Calculate days until due
         days_left = (bill_due_date - current_date).days
         
-        logger.debug(f"[SCHEDULE CHECK] Bill {bill.id} - Frequency: {bill.frequency}, Days left: {days_left}")
+        logger.debug(f"[SCHEDULE CHECK] Bill {bill.id} - Days left: {days_left}")
         
-        # Get or create last reminder sent info from notes
-        last_reminder_date = get_last_reminder_date(bill)
+        # Unified logic: send reminder on the 3rd, 2nd, and 1st day before the due date, and on the due date itself.
+        reminder_days = [3, 2, 1, 0]
         
-        if bill.frequency == 'once':
-            # For one-time bills, send reminders at configured intervals before due date
-            if days_left in [days_before, 2, 1, 0] and days_left >= 0:
-                # Check if we already sent a reminder today
-                if last_reminder_date != current_date:
-                    logger.debug(f"[SCHEDULE CHECK] One-time bill {bill.id} - Sending reminder (days_left: {days_left})")
-                    return True
-                    
-        elif bill.frequency == 'weekly':
-            # For weekly bills, send reminder if due within next 7 days
-            if 0 <= days_left <= 3:
-                if last_reminder_date != current_date:
-                    logger.debug(f"[SCHEDULE CHECK] Weekly bill {bill.id} - Sending reminder")
-                    return True
-                    
-        elif bill.frequency == 'monthly':
-            # For monthly bills, send reminders based on days_before setting
-            if days_left in [days_before, 2, 1, 0] and days_left >= 0:
-                if last_reminder_date != current_date:
-                    logger.debug(f"[SCHEDULE CHECK] Monthly bill {bill.id} - Sending reminder (days_left: {days_left})")
-                    return True
-                    
-        elif bill.frequency == 'quarterly':
-            # For quarterly bills, send reminders starting a week before
-            if days_left in [7, 5, 3, 2, 1, 0] and days_left >= 0:
-                if last_reminder_date != current_date:
-                    logger.debug(f"[SCHEDULE CHECK] Quarterly bill {bill.id} - Sending reminder (days_left: {days_left})")
-                    return True
-                    
-        elif bill.frequency == 'yearly':
-            # For yearly bills, send reminders starting 2 weeks before
-            if days_left in [14, 10, 7, 5, 3, 2, 1, 0] and days_left >= 0:
-                if last_reminder_date != current_date:
-                    logger.debug(f"[SCHEDULE CHECK] Yearly bill {bill.id} - Sending reminder (days_left: {days_left})")
-                    return True
-        
+        if days_left in reminder_days and days_left >= 0:
+            logger.debug(f"[SCHEDULE CHECK] Bill {bill.id} - Sending reminder (days_left: {days_left})")
+            return True
+
         return False
 
     def get_last_reminder_date(bill):
@@ -178,7 +136,6 @@ def start_scheduler(app):
         Get the date when the last reminder was sent for this bill.
         Stored in bill notes as JSON.
         """
-        import json
         try:
             if bill.notes:
                 notes_data = json.loads(bill.notes)
@@ -192,7 +149,6 @@ def start_scheduler(app):
         """
         Update the last reminder sent date for the bill.
         """
-        import json
         try:
             notes_data = {}
             if bill.notes:

@@ -625,16 +625,16 @@ class BillItem(BoxLayout):
             app.api.update_bill_paid_status(bill_id, new_status, self.on_paid_response)
 
 # ... (rest of the class) ...
-
 class AddBillScreen(Screen):
     bill_data = ObjectProperty({})
     is_edit_mode = BooleanProperty(False)
     loan_details_card = ObjectProperty(None)
 
+
     def on_switch_toggle(self, switch, switch_id):
-        """Handle toggle button state changes"""
-        # This method is called from the .kv file
-        # You can add logic here to handle different switches
+        """Handle toggle button state changes.
+        This is a placeholder method that prevents the AttributeError.
+        """
         print(f"Switch '{switch_id}' toggled to state: {switch.state}")
 
     def on_kv_post(self, base_widget):
@@ -661,7 +661,8 @@ class AddBillScreen(Screen):
         self.ids.bill_notes.text = self.bill_data.get('notes', '')
         
         reminder_prefs = self.bill_data.get('reminder_preferences', {})
-        self.ids.enable_call_switch.active = reminder_prefs.get('enable_call', False)
+        # FIX: Use state == 'down' instead of a boolean value
+        self.ids.enable_call_switch.state = 'down' if reminder_prefs.get('enable_call', False) else 'normal'
         
         due_date = self.bill_data.get('due_date', '')
         if due_date:
@@ -680,8 +681,9 @@ class AddBillScreen(Screen):
         self.ids.bill_notes.text = ''
         self.bill_data = {}
         self.is_edit_mode = False
-        self.ids.enable_call_switch.active = False
-        self.ids.loan_switch.active = False
+        # FIX: Use state = 'normal' for both switches
+        self.ids.enable_call_switch.state = 'normal'
+        self.ids.loan_switch.state = 'normal'
     
     def save_bill(self):
         if not self.ids.bill_name.text or not self.ids.bill_amount.text or not self.ids.bill_due_date.text:
@@ -694,6 +696,7 @@ class AddBillScreen(Screen):
             self.show_error("Invalid amount")
             return
         
+        # FIX: Use state == 'down' for both switches in the payload
         bill_data = {
             'name': self.ids.bill_name.text,
             'amount': amount,
@@ -703,14 +706,15 @@ class AddBillScreen(Screen):
             'notes': self.ids.bill_notes.text,
             'reminder_preferences': {
                 'enable_whatsapp': True,
-                'enable_call': self.ids.enable_call_switch.active,
+                'enable_call': self.ids.enable_call_switch.state == 'down', # FIX
                 'enable_sms': False,
                 'enable_local_notification': True
             }
         }
         
         loan_data = None
-        if self.ids.loan_switch.active:
+        # FIX: Use state == 'down' for the conditional check
+        if self.ids.loan_switch.state == 'down':
             try:
                 loan_data = {
                     'total_amount': float(self.ids.loan_total_amount.text),
@@ -749,7 +753,9 @@ class AddBillScreen(Screen):
         )
         popup.open()
 
-    # In the AddBillScreen class in main.py
+
+
+
 
 def save_bill(self):
     """Save or update bill."""
@@ -781,7 +787,7 @@ def save_bill(self):
         'notes': self.ids.bill_notes.text,
         'reminder_preferences': {
             'enable_whatsapp': True,
-            'enable_call': self.ids.enable_call_switch.active,
+            'enable_call': self.ids.enable_call_switch.state == 'down', # Corrected for ToggleButton
             'enable_sms': False,
             'enable_local_notification': True
         }
@@ -789,7 +795,7 @@ def save_bill(self):
     
     # Build the loan details payload if the switch is active
     loan_data = None
-    if self.ids.loan_switch.active:
+    if self.ids.loan_switch.state == 'down':  # CORRECTED LINE
         try:
             loan_data = {
                 'total_amount': float(self.ids.loan_total_amount.text),
@@ -808,7 +814,16 @@ def save_bill(self):
     else:
         app.api.create_bill(bill_data, self.on_save_response, loan_data=loan_data)
 
+# In the SettingsScreen class in main.py
+
 class SettingsScreen(Screen):
+
+    def save_settings_on_toggle(self, switch):
+        """
+        Callback method to save settings immediately when a toggle button is pressed.
+        This prevents the AttributeError from the .kv file.
+        """
+        self.save_settings()
     def on_enter(self):
         app = App.get_running_app()
         app.api.get_reminder_settings(self.on_settings_loaded)
@@ -816,32 +831,35 @@ class SettingsScreen(Screen):
     def on_settings_loaded(self, response, error=None):
         if response and response.status_code == 200:
             settings = response.json()
-            self.ids.whatsapp_switch.active = settings.get('whatsapp_enabled', False)
-            self.ids.call_switch.active = settings.get('call_enabled', False)
-            self.ids.sms_switch.active = settings.get('sms_enabled', False)
-            self.ids.notification_switch.active = settings.get('local_notifications', True)
+            # FIX: Set the state based on the boolean value from the server.
+            self.ids.whatsapp_switch.state = 'down' if settings.get('whatsapp_enabled', False) else 'normal'
+            self.ids.call_switch.state = 'down' if settings.get('call_enabled', False) else 'normal'
+            self.ids.sms_switch.state = 'down' if settings.get('sms_enabled', False) else 'normal'
+            self.ids.notification_switch.state = 'down' if settings.get('local_notifications', True) else 'normal'
             self.ids.days_before_input.text = str(settings.get('days_before', 3))
             self.ids.preferred_time_input.text = settings.get('preferred_time', '09:00')
-    
+
     def save_settings(self):
+        # This method combines all the correct logic in a single, properly defined function.
         settings = {
-            'whatsapp_enabled': self.ids.whatsapp_switch.active,
-            'call_enabled': self.ids.call_switch.active,
-            'sms_enabled': self.ids.sms_switch.active,
-            'local_notifications': self.ids.notification_switch.active,
+            # FIX: Get the boolean value from the state property.
+            'whatsapp_enabled': self.ids.whatsapp_switch.state == 'down',
+            'call_enabled': self.ids.call_switch.state == 'down',
+            'sms_enabled': self.ids.sms_switch.state == 'down',
+            'local_notifications': self.ids.notification_switch.state == 'down',
             'days_before': int(self.ids.days_before_input.text or 3),
             'preferred_time': self.ids.preferred_time_input.text or '09:00'
         }
-        
+    
         app = App.get_running_app()
         app.api.update_reminder_settings(settings, self.on_settings_saved)
-    
+
     def on_settings_saved(self, response, error=None):
-        app = App.get_running_app()
+        if error:
+            App.get_running_app().show_popup('Error', 'Failed to save settings')
+            return
         if response and response.status_code == 200:
-            app.show_popup('Success', 'Settings saved successfully')
-        else:
-            app.show_popup('Error', 'Failed to save settings')
+            App.get_running_app().show_popup('Success', 'Settings saved successfully')
     
     def test_reminder(self, reminder_type):
         logging.info(f"Test reminder button pressed for type: {reminder_type}")

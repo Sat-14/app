@@ -110,6 +110,7 @@
                                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                                 background_normal: 'toggle_off.png' # <-- Use an image for the off state
                                 background_down: 'toggle_on.png' # <-- Use an image for the on state
+                                on_state: root.save_settings_on_toggle(self) # ADD THIS LINE
 
                         # Voice Call Row
                         BoxLayout:
@@ -128,7 +129,7 @@
                                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                                 background_normal: 'toggle_off.png' # <-- Use an image for the off state
                                 background_down: 'toggle_on.png' # <-- Use an image for the on state
-                                
+                                on_state: root.save_settings_on_toggle(self) # ADD THIS LINE
 
                         # SMS Row
                         BoxLayout:
@@ -147,6 +148,7 @@
                                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                                 background_normal: 'toggle_off.png' # <-- Use an image for the off state
                                 background_down: 'toggle_on.png' # <-- Use an image for the on state
+                                on_state: root.save_settings_on_toggle(self) # ADD THIS LINE
 
                         # App Notifications Row
                         BoxLayout:
@@ -165,6 +167,7 @@
                                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                                 background_normal: 'toggle_off.png' # <-- Use an image for the off state
                                 background_down: 'toggle_on.png' # <-- Use an image for the on state
+                                on_state: root.save_settings_on_toggle(self) # ADD THIS LINE
 
                     CardLayout: # Reminder Timing
                         orientation: 'vertical'
