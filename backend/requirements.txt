@@ -37,3 +37,4 @@ kivy
 python-dateutil
 requests
 cryptography
+openai
