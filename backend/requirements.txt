@@ -38,3 +38,4 @@ python-dateutil
 requests
 cryptography
 openai
+gunicorn
