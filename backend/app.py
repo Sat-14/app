@@ -124,12 +124,15 @@ def create_app():
     logger.info("[APP INIT] Flask application creation completed successfully")
     return app
 
+
+app = create_app()
+
 if __name__ == '__main__':
     logger.info("=" * 80)
     logger.info("[MAIN] Starting application in main block")
     logger.info("=" * 80)
     
-    app = create_app()
+    
     
     # Create tables including new chatbot tables
     logger.info("[MAIN] Creating database tables")
